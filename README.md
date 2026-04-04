@@ -19,27 +19,86 @@ A mini [e4mc](https://e4mc.link)/[playit](https://playit.gg) alternative that ru
 
 ### 1. VPS Setup (Relay Server)
 
-**Prerequisites:** Go 1.22+, a domain with wildcard DNS
+**Prerequisites:** Go 1.22+, a domain managed by Cloudflare, a VPS with a public IP
+
+#### Step 1: Cloudflare DNS Wildcard Setup
+
+Giả sử bạn sở hữu domain `example.com` và muốn dùng subdomain `mc.example.com` cho e36mc.
+
+1. Đăng nhập [Cloudflare Dashboard](https://dash.cloudflare.com/) → chọn domain `example.com` → **DNS** → **Records**
+
+2. Thêm **2 bản ghi A**:
+
+| Type | Name | Content (IPv4) | Proxy status | TTL |
+|------|------|----------------|-------------|-----|
+| A | `mc` | `203.0.113.10` | **DNS only** (grey cloud ☁️) | Auto |
+| A | `*.mc` | `203.0.113.10` | **DNS only** (grey cloud ☁️) | Auto |
+
+> ⚠️ **QUAN TRỌNG:** Proxy status phải là **DNS only** (biểu tượng cloud xám), **KHÔNG** bật Proxied (cloud cam). Cloudflare proxy không hỗ trợ forward Minecraft TCP traffic (chỉ hỗ trợ HTTP/HTTPS).
+
+3. Thay `203.0.113.10` bằng IP thực của VPS bạn.
+
+4. Kiểm tra DNS đã hoạt động:
+```bash
+# Trên VPS hoặc máy bất kỳ
+nslookup mc.example.com
+# → Phải trả về IP VPS
+
+nslookup alice.mc.example.com
+# → Cũng phải trả về IP VPS (nhờ wildcard *.mc)
+```
+
+#### Step 2: Let's Encrypt Wildcard Certificate (với Cloudflare DNS)
+
+Wildcard cert (`*.mc.example.com`) yêu cầu DNS-01 challenge. Dùng Cloudflare API token để certbot tự verify.
 
 ```bash
-# DNS: Point *.mc.yourdomain.com → your VPS IP
-# Example: *.mc.example.com  A  203.0.113.10
+# Cài certbot + Cloudflare plugin
+sudo apt update
+sudo apt install certbot python3-certbot-dns-cloudflare
 
-# TLS cert (Let's Encrypt wildcard via DNS challenge)
-sudo certbot certonly --manual --preferred-challenges dns \
-  -d "*.mc.yourdomain.com" -d "mc.yourdomain.com"
+# Tạo Cloudflare API token:
+#   1. Cloudflare Dashboard → My Profile → API Tokens → Create Token
+#   2. Chọn template "Edit zone DNS"
+#   3. Zone Resources: chọn domain example.com
+#   4. Copy token
 
-# Build and run
+# Lưu token vào file
+sudo mkdir -p /etc/cloudflare
+sudo tee /etc/cloudflare/credentials.ini > /dev/null <<EOF
+dns_cloudflare_api_token = YOUR_CLOUDFLARE_API_TOKEN_HERE
+EOF
+sudo chmod 600 /etc/cloudflare/credentials.ini
+
+# Xin wildcard cert
+sudo certbot certonly \
+  --dns-cloudflare \
+  --dns-cloudflare-credentials /etc/cloudflare/credentials.ini \
+  -d "mc.example.com" \
+  -d "*.mc.example.com"
+
+# Cert sẽ ở:
+#   /etc/letsencrypt/live/mc.example.com/fullchain.pem
+#   /etc/letsencrypt/live/mc.example.com/privkey.pem
+
+# Auto-renew (certbot tự thêm cron, nhưng kiểm tra):
+sudo certbot renew --dry-run
+```
+
+#### Step 3: Build & Run Relay Server
+
+```bash
+# Build
 cd relay-server
 go mod tidy
 go build -o e36mc-relay
 
 # Edit config
 cp config.json config.json.bak
-# Edit config.json with your domain and cert paths
+# Edit config.json — xem bên dưới
 
 # Edit users
-# Edit users.json with your users and tokens
+# Edit users.json — xem bên dưới
 
 # Run
 ./e36mc-relay -config config.json
