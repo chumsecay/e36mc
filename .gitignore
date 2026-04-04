@@ -1,0 +1,28 @@
+# Build artifacts
+mod/build/
+mod/.gradle/
+relay-server/e36mc-relay
+relay-server/e36mc-relay.exe
+relay-server/go.sum
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Config & sensitive files
+mod/run/
+mod/config/e36mc.json
+relay-server/config.json
+relay-server/users.json
+relay-server/*.pem
+relay-server/*.key
+relay-server/*.crt
+
+# OS files
+.DS_Store
+thumbs.db
+
+# Temp files
+tmp/
+*.log

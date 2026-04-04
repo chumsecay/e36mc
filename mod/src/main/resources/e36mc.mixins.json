@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.e36mc.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "IntegratedServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
