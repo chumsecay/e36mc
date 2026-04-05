@@ -25,7 +25,6 @@ public class E36mcMod implements ClientModInitializer {
     // Config values
     public static String relayHost = "mc.sigmaskibidi.click";
     public static int relayPort = 25500;
-    public static String userId = "";
     public static String token = "";
     public static boolean trustAllCerts = true; // Set to true to allow self-signed certs
 
@@ -44,7 +43,7 @@ public class E36mcMod implements ClientModInitializer {
             stopTunnel();
         });
 
-        LOGGER.info("[e36mc] e36mc initialized. Relay: {}:{}, User: {}", relayHost, relayPort, userId);
+        LOGGER.info("[e36mc] e36mc initialized. Relay: {}:{}", relayHost, relayPort);
     }
 
     /**
@@ -53,9 +52,9 @@ public class E36mcMod implements ClientModInitializer {
     public static void onLanOpened(int lanPort) {
         LOGGER.info("[e36mc] LAN opened on port {}", lanPort);
 
-        if (userId.isEmpty() || token.isEmpty()) {
-            LOGGER.error("[e36mc] No user_id or token configured! Edit config/e36mc.json");
-            LanEventHandler.sendChatMessage("§c[e36mc] Error: No user_id or token configured. Edit config/e36mc.json");
+        if (token.isEmpty()) {
+            LOGGER.error("[e36mc] No token configured! Edit config/e36mc.json");
+            LanEventHandler.sendChatMessage("§c[e36mc] Error: No token configured. Edit config/e36mc.json");
             return;
         }
 
@@ -65,7 +64,7 @@ public class E36mcMod implements ClientModInitializer {
         stopTunnel();
 
         // Start new tunnel
-        activeTunnel = new TunnelClient(lanPort, relayHost, relayPort, userId, token, trustAllCerts);
+        activeTunnel = new TunnelClient(lanPort, relayHost, relayPort, token, trustAllCerts);
         activeTunnel.start();
     }
 
@@ -130,15 +129,8 @@ public class E36mcMod implements ClientModInitializer {
                 saveNeeded = true; 
             }
 
-            // User ID
-            if (config.has("user_id") && !config.get("user_id").isJsonNull()) {
-                userId = config.get("user_id").getAsString();
-            }
-            if (userId == null || userId.isEmpty()) {
-                userId = "user-" + java.util.UUID.randomUUID().toString().substring(0, 8);
-                config.addProperty("user_id", userId);
-                saveNeeded = true;
-            }
+            // Removing user_id legacy support by omitting it here
+            // If they had user_id, it will just be ignored in memory
 
             // Token
             if (config.has("token") && !config.get("token").isJsonNull()) {

@@ -2,6 +2,9 @@ package com.e36mc;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
 
 /**
  * Handles LAN open/close events and communicates status to the player via chat.
@@ -27,17 +30,31 @@ public class LanEventHandler {
     /**
      * Displays the public tunnel address to the player.
      */
-    public static void displayTunnelAddress(String domain) {
-        sendChatMessage("§a§l[e36mc] §r§aTunnel active!");
+    public static void displayTunnelAddress(String domain, String token) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client != null) {
             client.execute(() -> {
                 if (client.player != null) {
-                    client.player.sendMessage(Text.literal("§e§lPublic address: §f" + domain), false);
+                    client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
+                    
+                    MutableText domainText = Text.literal("§eĐịa chỉ của bạn: §f" + domain + " ")
+                            .append(Text.literal("§b§n[Bấm để Copy Địa Chỉ]")
+                            .styled(style -> style
+                                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, domain))
+                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy địa chỉ vào Clipboard")))
+                            ));
+                    client.player.sendMessage(domainText, false);
+
+                    MutableText tokenText = Text.literal("§eBảo mật: ")
+                            .append(Text.literal("§c§n[Bấm để Copy Token]")
+                            .styled(style -> style
+                                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, token))
+                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy Token của bạn (Giữ kín nội dung trên Stream)"))
+                            )));
+                    client.player.sendMessage(tokenText, false);
                 }
             });
         }
-        sendChatMessage("§7Share this address with friends to let them join.");
     }
 
     /**
@@ -50,15 +67,24 @@ public class LanEventHandler {
     /**
      * Displays whitelist instructions and clickable user identity.
      */
-    public static void displayWhitelistInfo(String userId, String token) {
+    public static void displayWhitelistInfo(String token, String reason) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client != null) {
             client.execute(() -> {
                 if (client.player != null) {
-                    client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cConnection refused. You need to be whitelisted!"), false);
-                    client.player.sendMessage(Text.literal("§eSend this info to the admin:"), false);
-                    client.player.sendMessage(Text.literal("§7User ID: §f" + userId), false);
-                    client.player.sendMessage(Text.literal("§7Token: §f" + token), false);
+                    if ("MAINTENANCE".equals(reason)) {
+                        client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang Bảo Trì!"), false);
+                    } else {
+                        client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang là Khép Kín (Private)."), false);
+                    }
+                    
+                    MutableText tokenText = Text.literal("§eGửi Token này cho Admin để được cấp quyền: ")
+                            .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
+                            .styled(style -> style
+                                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, token))
+                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Lấy mã bí mật của bạn")))
+                            ));
+                    client.player.sendMessage(tokenText, false);
                 }
             });
         }

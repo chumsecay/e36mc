@@ -1,0 +1,20 @@
+[Unit]
+Description=e36mc Relay Server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=root
+# Change this WorkingDirectory to the actual folder where e36mc-relay is located on your VPS, e.g. /opt/e36mc-relay
+WorkingDirectory=/root/e36mc-relay
+# Change this to the full path of the executable
+ExecStart=/root/e36mc-relay/e36mc-relay
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=e36mc-relay
+
+[Install]
+WantedBy=multi-user.target

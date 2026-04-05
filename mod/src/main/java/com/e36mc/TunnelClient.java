@@ -21,7 +21,6 @@ public class TunnelClient {
     private final int lanPort;
     private final String relayHost;
     private final int relayPort;
-    private final String userId;
     private final String token;
     private final boolean trustAllCerts;
 
@@ -44,11 +43,10 @@ public class TunnelClient {
     private static final long RECONNECT_DELAY_MS = 5000;
 
     public TunnelClient(int lanPort, String relayHost, int relayPort,
-                        String userId, String token, boolean trustAllCerts) {
+                        String token, boolean trustAllCerts) {
         this.lanPort = lanPort;
         this.relayHost = relayHost;
         this.relayPort = relayPort;
-        this.userId = userId;
         this.token = token;
         this.trustAllCerts = trustAllCerts;
     }
@@ -109,8 +107,8 @@ public class TunnelClient {
                 E36mcMod.LOGGER.info("[e36mc] TLS connected to relay");
 
                 // Send AUTH
-                TunnelProtocol.sendAuth(controlOut, userId, token);
-                E36mcMod.LOGGER.info("[e36mc] Auth sent for user {}", userId);
+                TunnelProtocol.sendAuth(controlOut, token);
+                E36mcMod.LOGGER.info("[e36mc] Auth sent with token");
 
                 // Read response
                 TunnelProtocol.Envelope response = TunnelProtocol.readMessage(controlIn);
@@ -118,7 +116,7 @@ public class TunnelClient {
                 if (TunnelProtocol.MSG_AUTH_OK.equals(response.type)) {
                     assignedDomain = response.payload.get("domain").getAsString();
                     E36mcMod.LOGGER.info("[e36mc] Auth OK! Domain: {}", assignedDomain);
-                    LanEventHandler.displayTunnelAddress(assignedDomain);
+                    LanEventHandler.displayTunnelAddress(assignedDomain, token);
 
                     // Start heartbeat
                     startHeartbeat();
@@ -132,7 +130,8 @@ public class TunnelClient {
                 } else if (TunnelProtocol.MSG_AUTH_ERR.equals(response.type)) {
                     String reason = response.payload.get("reason").getAsString();
                     E36mcMod.LOGGER.error("[e36mc] Auth failed: {}", reason);
-                    LanEventHandler.displayWhitelistInfo(userId, token);
+                    // Pass the reason to the event handler so it can show MAINTENANCE or NOT_WHITELISTED
+                    LanEventHandler.displayWhitelistInfo(token, reason);
                     running.set(false);
                     return;
                 }

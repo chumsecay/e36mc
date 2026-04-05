@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"log"
 	"net"
 	"time"
@@ -14,7 +16,7 @@ const (
 
 // handleControlConnection handles a new TLS connection from a mod client.
 // It reads the first message to determine if this is an AUTH or CONN_READY.
-func handleControlConnection(conn net.Conn, userStore *UserStore, sessionMgr *SessionManager, domain string) {
+func handleControlConnection(conn net.Conn, userStore *UserStore, sessionMgr *SessionManager, cfg *Config) {
 	// Read the first message
 	env, err := ReadMessage(conn)
 	if err != nil {
@@ -25,7 +27,7 @@ func handleControlConnection(conn net.Conn, userStore *UserStore, sessionMgr *Se
 
 	switch env.Type {
 	case MsgAuth:
-		handleAuth(conn, env, userStore, sessionMgr, domain)
+		handleAuth(conn, env, userStore, sessionMgr, cfg)
 	case MsgConnReady:
 		handleConnReady(conn, env, sessionMgr)
 	default:
@@ -35,7 +37,14 @@ func handleControlConnection(conn net.Conn, userStore *UserStore, sessionMgr *Se
 }
 
 // handleAuth processes an AUTH message and creates a session.
-func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *SessionManager, domain string) {
+func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *SessionManager, cfg *Config) {
+	if cfg.MaintenanceMode {
+		WriteMessage(conn, MsgAuthErr, &AuthErrPayload{Reason: "MAINTENANCE"})
+		time.Sleep(500 * time.Millisecond)
+		conn.Close()
+		return
+	}
+
 	auth, err := ParsePayload[AuthPayload](env)
 	if err != nil {
 		log.Printf("[auth] failed to parse auth payload: %v", err)
@@ -45,17 +54,33 @@ func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *
 		return
 	}
 
-	user, err := userStore.Authenticate(auth.UserID, auth.Token)
+	user, err := userStore.Authenticate(auth.Token)
 	if err != nil {
-		log.Printf("[auth] auth failed for user %s: %v", auth.UserID, err)
-		WriteMessage(conn, MsgAuthErr, &AuthErrPayload{Reason: "authentication failed"})
-		time.Sleep(500 * time.Millisecond) // Give client time to read before TCP FIN
-		conn.Close()
-		return
+		if err == ErrUserNotFound && cfg.AllowPublicMode {
+			b := make([]byte, 2)
+			rand.Read(b)
+			suffix := hex.EncodeToString(b)
+			user = &UserInfo{
+				UserID:    "Guest_" + suffix,
+				Token:     auth.Token,
+				Subdomain: "guest-" + suffix,
+				CreatedAt: time.Now(),
+			}
+			userStore.mu.Lock()
+			userStore.users[user.UserID] = user
+			userStore.mu.Unlock()
+			userStore.SaveToFile(cfg.UsersFile)
+		} else {
+			log.Printf("[auth] auth failed: %v", err)
+			WriteMessage(conn, MsgAuthErr, &AuthErrPayload{Reason: "NOT_WHITELISTED"})
+			time.Sleep(500 * time.Millisecond) // Give client time to read before TCP FIN
+			conn.Close()
+			return
+		}
 	}
 
 	// Build full domain for this user
-	fullDomain := user.Subdomain + "." + domain
+	fullDomain := user.Subdomain + "." + cfg.Domain
 	log.Printf("[auth] user %s authenticated, domain: %s", user.UserID, fullDomain)
 
 	// Create session (this kicks any existing session for the user)

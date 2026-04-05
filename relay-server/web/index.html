@@ -284,6 +284,60 @@
             z-index: 100;
             background: var(--bg);
         }
+
+        /* Toggle Switches */
+        .switches {
+            display: flex;
+            gap: 1.5rem;
+            margin-right: 1.5rem;
+            align-items: center;
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .switch-input {
+            display: none;
+        }
+
+        .switch-bg {
+            width: 44px;
+            height: 24px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .switch-bg::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .switch-input:checked + .switch-bg {
+            background: var(--success);
+        }
+
+        .switch-input:checked + .switch-bg.maintenance {
+            background: var(--danger);
+        }
+
+        .switch-input:checked + .switch-bg::after {
+            transform: translateX(20px);
+        }
     </style>
 </head>
 <body>
@@ -314,7 +368,22 @@
                     <div id="live-clock" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">--:--:--</div>
                 </div>
             </div>
-            <button class="danger" onclick="logout()">Logout</button>
+            
+            <div style="display:flex; align-items:center;">
+                <div class="switches">
+                    <label class="toggle-label" title="Allow unwhitelisted players to get random domains">
+                        <input type="checkbox" id="public-mode-toggle" class="switch-input" onchange="toggleConfig('public')">
+                        <div class="switch-bg"></div>
+                        🌍 Public Mode
+                    </label>
+                    <label class="toggle-label" title="Block EVERYONE from connecting">
+                        <input type="checkbox" id="maintenance-mode-toggle" class="switch-input" onchange="toggleConfig('maintenance')">
+                        <div class="switch-bg maintenance"></div>
+                        🛠️ Maintenance
+                    </label>
+                </div>
+                <button class="danger" onclick="logout()">Logout</button>
+            </div>
         </header>
 
         <div class="card">
@@ -345,8 +414,8 @@
             <h2 id="modal-title" style="margin-top:0;">Add User</h2>
             <input type="hidden" id="edit-mode" value="false">
             <div class="form-group">
-                <label>User ID</label>
-                <input type="text" id="input-userid" placeholder="e.g. user-1234">
+                <label>Display Name</label>
+                <input type="text" id="input-userid" placeholder="e.g. Alice">
             </div>
             <div class="form-group">
                 <label>Subdomain</label>
@@ -386,6 +455,7 @@
         }
 
         function startPolling() {
+            fetchConfig();
             fetchUsers();
             if(fetchInterval) clearInterval(fetchInterval);
             fetchInterval = setInterval(fetchUsers, 2000);
@@ -424,6 +494,49 @@
                 renderUsers(users);
             } catch (e) {
                 console.error("Failed to fetch users", e);
+            }
+        }
+
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/config', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const cfg = await res.json();
+                    const pubToggle = document.getElementById('public-mode-toggle');
+                    const mainToggle = document.getElementById('maintenance-mode-toggle');
+                    
+                    if (document.activeElement !== pubToggle) {
+                        pubToggle.checked = cfg.allow_public_mode;
+                    }
+                    if (document.activeElement !== mainToggle) {
+                        mainToggle.checked = cfg.maintenance_mode;
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch config", e);
+            }
+        }
+
+        async function toggleConfig(type) {
+            const isPublic = type === 'public' ? document.getElementById('public-mode-toggle').checked : undefined;
+            const isMaintenance = type === 'maintenance' ? document.getElementById('maintenance-mode-toggle').checked : undefined;
+            
+            try {
+                await fetch('/api/config', {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        allow_public_mode: isPublic,
+                        maintenance_mode: isMaintenance
+                    })
+                });
+            } catch (e) {
+                console.error("Failed to update config", e);
             }
         }
 

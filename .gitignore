@@ -23,6 +23,11 @@ relay-server/*.crt
 .DS_Store
 thumbs.db
 
+# Docker files
+relay-server/Dockerfile
+relay-server/docker-compose.yml
+relay-server/data/
+
 # Temp files
 tmp/
 *.log

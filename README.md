@@ -112,6 +112,36 @@ Once the relay server is running, head to your Web Dashboard:
 
 ---
 
+## 🛠️ 4. Compilation & Development
+
+### Building the Fabric Mod
+If you want to build the mod from source:
+- **Windows**: Use the provided `build_mod.bat` script or run:
+  ```cmd
+  cd mod
+  .\gradlew.bat build
+  ```
+- **Linux/macOS**: Use the provided `build_mod.sh` script (after `chmod +x`) or run:
+  ```bash
+  cd mod
+  ./gradlew build
+  ```
+The compiled JAR will be in `mod/build/libs/`.
+
+### Building the Relay Server
+- **Standard Go Build**:
+  ```bash
+  cd relay-server
+  go build -o e36mc-relay .
+  ```
+- **Docker (Recommended)**:
+  ```bash
+  cd relay-server
+  docker compose up --build -d
+  ```
+
+---
+
 ## ⚙️ How It Works (Architecture)
 
 ```
@@ -133,4 +163,4 @@ The relay uses standard Minecraft packet parsing. When an external player connec
 - Atomic execution and `RWMutex` locking ensure connections don't drop or conflict.
 
 ## License
-MIT
+GNU General Public License v3.0 (GPLv3)

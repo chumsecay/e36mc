@@ -3,11 +3,14 @@ package main
 import (
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
 	"time"
 )
+
+var ErrUserNotFound = errors.New("user not found")
 
 type UserInfo struct {
 	UserID    string    `json:"user_id"`
@@ -46,20 +49,17 @@ func (s *UserStore) LoadFromFile(path string) error {
 	return nil
 }
 
-// Authenticate validates user_id + token. Returns UserInfo on success.
-func (s *UserStore) Authenticate(userID, token string) (*UserInfo, error) {
+// Authenticate validates the token. Returns UserInfo on success.
+func (s *UserStore) Authenticate(token string) (*UserInfo, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	user, ok := s.users[userID]
-	if !ok {
-		return nil, fmt.Errorf("unknown user: %s", userID)
+	for _, u := range s.users {
+		if len(u.Token) == len(token) && subtle.ConstantTimeCompare([]byte(u.Token), []byte(token)) == 1 {
+			return u, nil
+		}
 	}
-	// Constant-time comparison to prevent timing attacks
-	if subtle.ConstantTimeCompare([]byte(user.Token), []byte(token)) != 1 {
-		return nil, fmt.Errorf("invalid token for user: %s", userID)
-	}
-	return user, nil
+	return nil, ErrUserNotFound
 }
 
 // UpdateUser modifies an existing user's subdomain or token.

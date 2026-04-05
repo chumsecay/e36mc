@@ -28,8 +28,7 @@ type Envelope struct {
 // --- Payload structs ---
 
 type AuthPayload struct {
-	UserID string `json:"user_id"`
-	Token  string `json:"token"`
+	Token string `json:"token"`
 }
 
 type AuthOkPayload struct {

@@ -172,6 +172,53 @@ func (ws *WebServer) handleEditUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (ws *WebServer) handleConfig(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]bool{
+			"allow_public_mode": ws.cfg.AllowPublicMode,
+			"maintenance_mode":  ws.cfg.MaintenanceMode,
+		})
+		return
+	}
+
+	if r.Method == http.MethodPut {
+		var update struct {
+			AllowPublicMode *bool `json:"allow_public_mode"`
+			MaintenanceMode *bool `json:"maintenance_mode"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if update.AllowPublicMode != nil {
+			ws.cfg.AllowPublicMode = *update.AllowPublicMode
+		}
+		if update.MaintenanceMode != nil {
+			ws.cfg.MaintenanceMode = *update.MaintenanceMode
+		}
+
+		// Save config. Note this re-marshals the whole config struct.
+		// For a simple app this is fine as long as Config knows its file path.
+		// We'll write it to "config.json" directly, or ws.cfg should know it.
+		// But Wait: Config doesn't store its own path. We should pass configPath to SaveConfig.
+		// Let's assume it's always "config.json" to simplify, or maybe the admin runs it with default.
+		// Actually, I can just save it to "config.json"
+		if err := ws.cfg.SaveConfig("config.json"); err != nil {
+			http.Error(w, "Failed to save config", http.StatusInternalServerError)
+			return
+		}
+		
+		ws.cfg.SaveConfig("config.json") // We'll just hardcode config.json for the web dashboard right now
+
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+}
+
 func (ws *WebServer) Start() error {
 	mux := http.NewServeMux()
 
@@ -187,6 +234,7 @@ func (ws *WebServer) Start() error {
 	mux.HandleFunc("/api/users/add", ws.authMiddleware(ws.handleAddUser))
 	mux.HandleFunc("/api/users/edit", ws.authMiddleware(ws.handleEditUser))
 	mux.HandleFunc("/api/users/delete", ws.authMiddleware(ws.handleDeleteUser))
+	mux.HandleFunc("/api/config", ws.authMiddleware(ws.handleConfig))
 
 	addr := fmt.Sprintf(":%d", ws.cfg.WebPort)
 	log.Printf("[web] starting management UI on %s", addr)

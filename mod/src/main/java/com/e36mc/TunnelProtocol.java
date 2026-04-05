@@ -84,9 +84,8 @@ public class TunnelProtocol {
 
     // --- Convenience methods ---
 
-    public static void sendAuth(OutputStream out, String userId, String token) throws IOException {
+    public static void sendAuth(OutputStream out, String token) throws IOException {
         JsonObject payload = new JsonObject();
-        payload.addProperty("user_id", userId);
         payload.addProperty("token", token);
         writeMessage(out, MSG_AUTH, payload);
     }

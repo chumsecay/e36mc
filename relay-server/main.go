@@ -68,7 +68,7 @@ func main() {
 			continue
 		}
 		log.Printf("[main] new control connection from %s", conn.RemoteAddr())
-		go handleControlConnection(conn, userStore, sessionMgr, cfg.Domain)
+		go handleControlConnection(conn, userStore, sessionMgr, cfg)
 	}
 }
 
