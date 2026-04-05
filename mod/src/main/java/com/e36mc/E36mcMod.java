@@ -33,7 +33,7 @@ public class E36mcMod implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        LOGGER.info("[e36mc] Initializing e36mc tunnel mod");
+        LOGGER.info("[e36mc] Initializing e36mc tunnel mod v4.0 (CRITICAL-FIX)");
 
         // Load config
         loadConfig();

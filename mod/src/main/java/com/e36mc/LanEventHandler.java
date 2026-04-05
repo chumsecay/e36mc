@@ -4,7 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
+// import net.minecraft.text.HoverEvent;
 
 /**
  * Handles LAN open/close events and communicates status to the player via chat.
