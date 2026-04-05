@@ -23,11 +23,11 @@ public class E36mcMod implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     // Config values
-    public static String relayHost = "localhost";
+    public static String relayHost = "mc.sigmaskibidi.click";
     public static int relayPort = 25500;
     public static String userId = "";
     public static String token = "";
-    public static boolean trustAllCerts = false; // For development with self-signed certs
+    public static boolean trustAllCerts = true; // Set to true to allow self-signed certs
 
     // Active tunnel client
     private static TunnelClient activeTunnel = null;
@@ -102,7 +102,7 @@ public class E36mcMod implements ClientModInitializer {
             }
 
             if (config.has("relay_host")) relayHost = config.get("relay_host").getAsString();
-            else { config.addProperty("relay_host", "localhost"); saveNeeded = true; }
+            else { config.addProperty("relay_host", "mc.sigmaskibidi.click"); saveNeeded = true; }
 
             if (config.has("relay_port")) relayPort = config.get("relay_port").getAsInt();
             else { config.addProperty("relay_port", 25500); saveNeeded = true; }
@@ -122,7 +122,7 @@ public class E36mcMod implements ClientModInitializer {
             }
 
             if (config.has("trust_all_certs")) trustAllCerts = config.get("trust_all_certs").getAsBoolean();
-            else { config.addProperty("trust_all_certs", false); saveNeeded = true; }
+            else { config.addProperty("trust_all_certs", true); trustAllCerts = true; saveNeeded = true; }
 
             if (saveNeeded) {
                 Files.writeString(configFile, new Gson().toJson(config));
