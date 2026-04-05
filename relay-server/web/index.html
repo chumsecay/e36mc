@@ -186,8 +186,6 @@
 
         #login-overlay {
             z-index: 100;
-            opacity: 1;
-            pointer-events: all;
             background: var(--bg);
         }
     </style>
@@ -195,7 +193,7 @@
 <body>
 
     <!-- Login Screen -->
-    <div id="login-overlay" class="modal-overlay">
+    <div id="login-overlay" class="modal-overlay active">
         <div class="modal">
             <form onsubmit="login(); return false;">
                 <h2 style="margin-top:0;">Login</h2>
