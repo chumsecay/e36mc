@@ -114,7 +114,11 @@ public class TunnelClient {
                 TunnelProtocol.Envelope response = TunnelProtocol.readMessage(controlIn);
 
                 if (TunnelProtocol.MSG_AUTH_OK.equals(response.type)) {
-                    assignedDomain = response.payload.get("domain").getAsString();
+                    if (response.payload.has("domain") && !response.payload.get("domain").isJsonNull()) {
+                        assignedDomain = response.payload.get("domain").getAsString();
+                    } else {
+                        assignedDomain = "unknown-domain";
+                    }
                     E36mcMod.LOGGER.info("[e36mc] Auth OK! Domain: {}", assignedDomain);
                     LanEventHandler.displayTunnelAddress(assignedDomain, token);
 

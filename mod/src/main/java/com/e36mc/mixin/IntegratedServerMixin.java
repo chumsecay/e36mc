@@ -3,6 +3,7 @@ package com.e36mc.mixin;
 import com.e36mc.E36mcMod;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.world.GameMode;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,7 +27,7 @@ public class IntegratedServerMixin {
      * We capture the port parameter to know which local port Minecraft is listening on.
      */
     @Inject(method = "openToLan", at = @At("RETURN"))
-    private void onOpenToLan(GameMode gameMode, boolean cheatsAllowed, int port,
+    private void onOpenToLan(@Nullable GameMode gameMode, boolean cheatsAllowed, int port,
                              CallbackInfoReturnable<Boolean> cir) {
         // Only proceed if opening to LAN was successful
         if (cir.getReturnValue()) {

@@ -31,30 +31,33 @@ public class LanEventHandler {
      * Displays the public tunnel address to the player.
      */
     public static void displayTunnelAddress(String domain, String token) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client != null) {
-            client.execute(() -> {
-                if (client.player != null) {
-                    client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
-                    
-                    MutableText domainText = Text.literal("§eĐịa chỉ của bạn: §f" + domain + " ")
-                            .append(Text.literal("§b§n[Bấm để Copy Địa Chỉ]")
-                            .styled(style -> style
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, domain))
-                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy địa chỉ vào Clipboard")))
-                            ));
-                    client.player.sendMessage(domainText, false);
+        final String safeDomain = (domain != null) ? domain : "Unknown";
+        final String safeToken = (token != null) ? token : "Unknown";
 
-                    MutableText tokenText = Text.literal("§eBảo mật: ")
-                            .append(Text.literal("§c§n[Bấm để Copy Token]")
-                            .styled(style -> style
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, token))
-                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy Token của bạn (Giữ kín nội dung trên Stream)"))
-                            )));
-                    client.player.sendMessage(tokenText, false);
-                }
-            });
-        }
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null) return;
+
+        client.execute(() -> {
+            if (client.player == null) return;
+
+            client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
+
+            MutableText domainText = Text.literal("§eĐịa chỉ của bạn: §f" + safeDomain + " ")
+                .append(Text.literal("§b§n[Bấm để Copy Địa Chỉ]")
+                .styled(style -> style
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy địa chỉ vào Clipboard")))
+                ));
+            client.player.sendMessage(domainText, false);
+
+            MutableText tokenText = Text.literal("§eBảo mật: ")
+                .append(Text.literal("§c§n[Bấm để Copy Token]")
+                .styled(style -> style
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy Token của bạn (Giữ kín nội dung trên Stream)")))
+                ));
+            client.player.sendMessage(tokenText, false);
+        });
     }
 
     /**
@@ -68,26 +71,29 @@ public class LanEventHandler {
      * Displays whitelist instructions and clickable user identity.
      */
     public static void displayWhitelistInfo(String token, String reason) {
+        final String safeToken = (token != null) ? token : "Unknown";
+        final String safeReason = (reason != null) ? reason : "Unknown";
+
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client != null) {
-            client.execute(() -> {
-                if (client.player != null) {
-                    if ("MAINTENANCE".equals(reason)) {
-                        client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang Bảo Trì!"), false);
-                    } else {
-                        client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang là Khép Kín (Private)."), false);
-                    }
-                    
-                    MutableText tokenText = Text.literal("§eGửi Token này cho Admin để được cấp quyền: ")
-                            .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
-                            .styled(style -> style
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, token))
-                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Lấy mã bí mật của bạn")))
-                            ));
-                    client.player.sendMessage(tokenText, false);
-                }
-            });
-        }
+        if (client == null) return;
+
+        client.execute(() -> {
+            if (client.player == null) return;
+
+            if ("MAINTENANCE".equals(safeReason)) {
+                client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang Bảo Trì!"), false);
+            } else {
+                client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang là Khép Kín (Private)."), false);
+            }
+
+            MutableText tokenText = Text.literal("§eGửi Token này cho Admin để được cấp quyền: ")
+                .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
+                .styled(style -> style
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Lấy mã bí mật của bạn")))
+                ));
+            client.player.sendMessage(tokenText, false);
+        });
     }
 
     /**
