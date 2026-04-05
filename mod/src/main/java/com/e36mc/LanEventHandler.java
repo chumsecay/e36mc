@@ -42,19 +42,19 @@ public class LanEventHandler {
 
             client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
 
+            // Bấm để Copy Địa Chỉ (Tạm thời bỏ HoverEvent để tránh lỗi InstantiationError trên 1.21.1)
             MutableText domainText = Text.literal("§eĐịa chỉ của bạn: §f" + safeDomain + " ")
                 .append(Text.literal("§b§n[Bấm để Copy Địa Chỉ]")
                 .styled(style -> style
                     .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy địa chỉ vào Clipboard")))
                 ));
             client.player.sendMessage(domainText, false);
 
+            // Bấm để Copy Token (Tạm thời bỏ HoverEvent để tránh lỗi InstantiationError trên 1.21.1)
             MutableText tokenText = Text.literal("§eBảo mật: ")
                 .append(Text.literal("§c§n[Bấm để Copy Token]")
                 .styled(style -> style
                     .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy Token của bạn (Giữ kín nội dung trên Stream)")))
                 ));
             client.player.sendMessage(tokenText, false);
         });
@@ -90,7 +90,6 @@ public class LanEventHandler {
                 .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
                 .styled(style -> style
                     .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken))
-                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Lấy mã bí mật của bạn")))
                 ));
             client.player.sendMessage(tokenText, false);
         });
