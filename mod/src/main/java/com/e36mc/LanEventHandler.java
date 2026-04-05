@@ -41,20 +41,9 @@ public class LanEventHandler {
             if (client.player == null) return;
 
             client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
-
-            // Bấm để Copy Địa Chỉ (Cấu trúc lại Style để tránh lỗi InstantiationError trên 1.21.x)
-            MutableText domainLine = Text.literal("§eĐịa chỉ của bạn: §f" + safeDomain + " ");
-            MutableText domainButton = Text.literal("§b§n[Bấm để Copy Địa Chỉ]");
-            domainButton.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain)));
-            domainLine.append(domainButton);
-            client.player.sendMessage(domainLine, false);
-
-            // Bấm để Copy Token (Cấu trúc lại Style để tránh lỗi InstantiationError trên 1.21.x)
-            MutableText tokenLine = Text.literal("§eBảo mật: ");
-            MutableText tokenButton = Text.literal("§c§n[Bấm để Copy Token]");
-            tokenButton.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken)));
-            tokenLine.append(tokenButton);
-            client.player.sendMessage(tokenLine, false);
+            client.player.sendMessage(Text.literal("§eĐịa chỉ: §f" + safeDomain), false);
+            client.player.sendMessage(Text.literal("§eToken: §6" + safeToken), false);
+            client.player.sendMessage(Text.literal("§7(V5.0: Hãy copy thủ công nếu Click không hiện)"), false);
         });
     }
 
