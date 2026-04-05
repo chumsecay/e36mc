@@ -15,21 +15,26 @@
             --danger: #ef4444;
             --success: #10b981;
             --border: #334155;
+            --warning: #f59e0b;
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 40%);
+            background-attachment: fixed;
             color: var(--text);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
+            min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             padding: 2rem;
             box-sizing: border-box;
         }
@@ -43,17 +48,34 @@
             border-bottom: 1px solid var(--border);
         }
 
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-logo {
+            height: 48px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
         h1 {
             margin: 0;
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .card {
-            background-color: var(--surface);
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
             padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
@@ -66,63 +88,126 @@
         }
 
         button {
-            background-color: var(--primary);
+            background: linear-gradient(to right, var(--primary), #6366f1);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
         }
 
         button:hover {
-            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
         }
 
         button.danger {
-            background-color: transparent;
+            background: transparent;
             color: var(--danger);
             border: 1px solid var(--danger);
+            box-shadow: none;
         }
 
         button.danger:hover {
-            background-color: var(--danger);
+            background: var(--danger);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        button.edit {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            box-shadow: none;
+            margin-right: 0.5rem;
+        }
+        
+        button.edit:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
             margin-top: 1rem;
         }
 
         th, td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid var(--border);
         }
 
         th {
             color: var(--text-muted);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.05em;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border);
         }
-
-        tr:last-child td {
-            border-bottom: none;
+        
+        tbody tr {
+            background: rgba(15, 23, 42, 0.4);
+            transition: all 0.2s;
         }
+        
+        tbody tr:hover {
+            background: rgba(30, 41, 59, 0.8);
+            transform: scale(1.01);
+        }
+        
+        tbody td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        tbody td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 
         .badge {
-            background-color: rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.2);
             color: #60a5fa;
-            padding: 0.25rem 0.5rem;
+            padding: 0.3rem 0.6rem;
             border-radius: 9999px;
             font-size: 0.85rem;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
         }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-dot.online {
+            background-color: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+        
+        .status-dot.offline {
+            background-color: var(--text-muted);
+        }
+
+        .speed-stat {
+            font-family: monospace;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        
+        .speed-val {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .speed-val i { font-style: normal; font-size: 0.8rem; }
+        .down { color: #10b981; }
+        .up { color: #3b82f6; }
 
         /* Modal Styles */
         .modal-overlay {
@@ -135,7 +220,8 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
+            z-index: 50;
         }
 
         .modal-overlay.active {
@@ -145,12 +231,14 @@
 
         .modal {
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 2rem;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             transform: translateY(20px);
-            transition: transform 0.3s;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
 
         .modal-overlay.active .modal {
@@ -158,7 +246,7 @@
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
         }
 
         .form-group label {
@@ -170,18 +258,26 @@
 
         .form-group input {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: 6px;
+            padding: 0.8rem;
+            border-radius: 8px;
             border: 1px solid var(--border);
-            background: var(--bg);
+            background: rgba(15, 23, 42, 0.5);
             color: var(--text);
             box-sizing: border-box;
             font-family: inherit;
+            transition: border-color 0.2s;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        
+        .form-group input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(0,0,0,0.2);
         }
 
         #login-overlay {
@@ -196,35 +292,44 @@
     <div id="login-overlay" class="modal-overlay active">
         <div class="modal">
             <form onsubmit="login(); return false;">
-                <h2 style="margin-top:0;">Login</h2>
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <img src="logo.gif" alt="Logo" style="height: 64px; border-radius: 12px; margin-bottom: 1rem;">
+                    <h2 style="margin:0; background: linear-gradient(135deg, #60a5fa, #c084fc); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Login to e36mc</h2>
+                </div>
                 <div class="form-group">
                     <label>Admin Token</label>
                     <input type="password" id="admin-token" placeholder="Enter admin token...">
                 </div>
-                <button type="submit" style="width:100%">Enter Dashboard</button>
+                <button type="submit" style="width:100%; margin-top: 1rem; padding: 0.8rem;">Enter Dashboard</button>
             </form>
         </div>
     </div>
 
     <div class="container">
         <header>
-            <h1>e36mc Dashboard</h1>
+            <div class="header-title">
+                <img src="logo.gif" alt="e36mc logo" class="header-logo">
+                <div>
+                    <h1>e36mc Dashboard</h1>
+                    <div id="live-clock" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">--:--:--</div>
+                </div>
+            </div>
             <button class="danger" onclick="logout()">Logout</button>
         </header>
 
         <div class="card">
             <div class="flex-between">
-                <h2 style="margin:0;">Users</h2>
+                <h2 style="margin:0;">User Connections</h2>
                 <button onclick="showAddModal()">+ Add User</button>
             </div>
             
             <table id="users-table">
                 <thead>
                     <tr>
-                        <th>User ID</th>
+                        <th>Status & User</th>
                         <th>Subdomain</th>
-                        <th>Token</th>
-                        <th>Actions</th>
+                        <th>Live Bandwidth</th>
+                        <th style="min-width: 150px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="users-body">
@@ -238,9 +343,10 @@
     <div id="user-modal-overlay" class="modal-overlay">
         <div class="modal">
             <h2 id="modal-title" style="margin-top:0;">Add User</h2>
+            <input type="hidden" id="edit-mode" value="false">
             <div class="form-group">
                 <label>User ID</label>
-                <input type="text" id="input-userid" placeholder="e.g. alice">
+                <input type="text" id="input-userid" placeholder="e.g. user-1234">
             </div>
             <div class="form-group">
                 <label>Subdomain</label>
@@ -252,29 +358,49 @@
             </div>
             <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
                 <button class="danger" onclick="hideAddModal()" style="border:none;">Cancel</button>
-                <button onclick="saveUser()">Save</button>
+                <button onclick="saveUser()">Save User</button>
             </div>
         </div>
     </div>
 
     <script>
         let token = localStorage.getItem('e36mc_admin_token') || '';
+        let fetchInterval = null;
 
         if (token) {
             document.getElementById('login-overlay').classList.remove('active');
-            fetchUsers();
+            startPolling();
         }
 
         function login() {
             token = document.getElementById('admin-token').value.trim();
             localStorage.setItem('e36mc_admin_token', token);
             document.getElementById('login-overlay').classList.remove('active');
-            fetchUsers();
+            startPolling();
         }
 
         function logout() {
+            if(fetchInterval) clearInterval(fetchInterval);
             localStorage.removeItem('e36mc_admin_token');
             location.reload();
+        }
+
+        function startPolling() {
+            fetchUsers();
+            if(fetchInterval) clearInterval(fetchInterval);
+            fetchInterval = setInterval(fetchUsers, 2000);
+            
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('live-clock').innerText = now.toLocaleString();
+            }, 1000);
+        }
+        
+        function formatSpeed(bytesPerSec) {
+            if (bytesPerSec === 0) return '0 B/s';
+            if (bytesPerSec < 1024) return bytesPerSec + ' B/s';
+            if (bytesPerSec < 1024 * 1024) return (bytesPerSec / 1024).toFixed(1) + ' KB/s';
+            return (bytesPerSec / (1024 * 1024)).toFixed(2) + ' MB/s';
         }
 
         async function fetchUsers() {
@@ -283,88 +409,104 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.status === 401) {
+                    clearInterval(fetchInterval);
                     alert('Invalid token');
                     logout();
                     return;
                 }
                 const users = await res.json();
+                
+                // Sort users alphabetically by user_id to prevent rows jumping
+                if (users && users.length) {
+                    users.sort((a, b) => a.user_id.localeCompare(b.user_id));
+                }
+                
                 renderUsers(users);
             } catch (e) {
                 console.error("Failed to fetch users", e);
-                alert("Network error: " + e.message);
-                const tbody = document.getElementById('users-body');
-                tbody.replaceChildren();
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 4;
-                td.style.textAlign = 'center';
-                td.style.color = 'var(--danger)';
-                td.textContent = 'Error connecting to server';
-                tr.appendChild(td);
-                tbody.appendChild(tr);
             }
         }
 
         function renderUsers(users) {
             const tbody = document.getElementById('users-body');
-            tbody.replaceChildren();
             
             if (!users || users.length === 0) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 4;
-                td.style.textAlign = 'center';
-                td.style.color = 'var(--text-muted)';
-                td.textContent = 'No users found';
-                tr.appendChild(td);
-                tbody.appendChild(tr);
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No users found</td></tr>`;
                 return;
             }
 
+            let html = '';
+            const now = new Date();
+            
             users.forEach(u => {
-                const tr = document.createElement('tr');
+                const isOnline = u.is_online;
+                const downSpeed = formatSpeed(u.tx_speed);
+                const upSpeed = formatSpeed(u.rx_speed);
                 
-                const td1 = document.createElement('td');
-                const strong = document.createElement('strong');
-                strong.textContent = u.user_id;
-                td1.appendChild(strong);
+                const statusDot = `<span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>`;
+                const statusText = isOnline ? 'Online' : 'Offline';
                 
-                const td2 = document.createElement('td');
-                const span = document.createElement('span');
-                span.className = 'badge';
-                span.textContent = u.subdomain;
-                td2.appendChild(span);
+                let uptimeStr = '';
+                if (isOnline && u.connected_at) {
+                    const connected = new Date(u.connected_at);
+                    const diffMs = now - connected;
+                    if (diffMs > 0) {
+                        const mins = Math.floor(diffMs / 60000);
+                        const secs = Math.floor((diffMs % 60000) / 1000);
+                        uptimeStr = `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Uptime: ${mins}m ${secs}s</div>`;
+                    }
+                }
                 
-                const td3 = document.createElement('td');
-                const code = document.createElement('code');
-                code.style.background = 'var(--bg)';
-                code.style.padding = '0.2rem 0.4rem';
-                code.style.borderRadius = '4px';
-                code.style.color = 'var(--text-muted)';
-                code.textContent = u.token.substring(0,6) + '...';
-                td3.appendChild(code);
+                let createdStr = 'Unknown';
+                if (u.created_at && !u.created_at.startsWith("0001-01-01")) {
+                    createdStr = new Date(u.created_at).toLocaleString();
+                }
                 
-                const td4 = document.createElement('td');
-                const btn = document.createElement('button');
-                btn.className = 'danger';
-                btn.textContent = 'Delete';
-                btn.onclick = () => deleteUser(u.user_id);
-                td4.appendChild(btn);
-                
-                tr.appendChild(td1);
-                tr.appendChild(td2);
-                tr.appendChild(td3);
-                tr.appendChild(td4);
-                
-                tbody.appendChild(tr);
+                html += `<tr>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:0.6rem;">
+                            <div title="${statusText}">${statusDot}</div>
+                            <div>
+                                <strong title="Created: ${createdStr}" style="cursor:help;">${u.user_id}</strong>
+                                ${uptimeStr}
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge">${u.subdomain}</span></td>
+                    <td>
+                        <div class="speed-stat">
+                            <span class="speed-val down" title="Downstream to player"><i>↓</i> ${downSpeed}</span>
+                            <span class="speed-val up" title="Upstream from player"><i>↑</i> ${upSpeed}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <button class="edit" onclick="showEditModal('${u.user_id}', '${u.subdomain}', '${u.token}')">Edit</button>
+                            <button class="danger" onclick="deleteUser('${u.user_id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>`;
             });
+            tbody.innerHTML = html;
         }
 
         function showAddModal() {
             document.getElementById('modal-title').innerText = 'Add User';
+            document.getElementById('edit-mode').value = 'false';
             document.getElementById('input-userid').value = '';
+            document.getElementById('input-userid').disabled = false;
             document.getElementById('input-subdomain').value = '';
             document.getElementById('input-token').value = 'e36mc-' + Math.random().toString(36).substring(2, 10);
+            document.getElementById('user-modal-overlay').classList.add('active');
+        }
+        
+        function showEditModal(userId, subdomain, tokenStr) {
+            document.getElementById('modal-title').innerText = 'Edit User';
+            document.getElementById('edit-mode').value = 'true';
+            document.getElementById('input-userid').value = userId;
+            document.getElementById('input-userid').disabled = true;
+            document.getElementById('input-subdomain').value = subdomain;
+            document.getElementById('input-token').value = tokenStr;
             document.getElementById('user-modal-overlay').classList.add('active');
         }
 
@@ -373,14 +515,18 @@
         }
 
         async function saveUser() {
+            const isEdit = document.getElementById('edit-mode').value === 'true';
             const user = {
                 user_id: document.getElementById('input-userid').value,
                 subdomain: document.getElementById('input-subdomain').value,
                 token: document.getElementById('input-token').value
             };
 
-            const res = await fetch('/api/users/add', {
-                method: 'POST',
+            const endpoint = isEdit ? '/api/users/edit' : '/api/users/add';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            const res = await fetch(endpoint, {
+                method: method,
                 headers: { 
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

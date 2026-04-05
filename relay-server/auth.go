@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 )
 
 type UserInfo struct {
-	UserID    string `json:"user_id"`
-	Token     string `json:"token"`
-	Subdomain string `json:"subdomain"` // e.g. "alice" → alice.mc.mydomain.com
+	UserID    string    `json:"user_id"`
+	Token     string    `json:"token"`
+	Subdomain string    `json:"subdomain"` // e.g. "alice" → alice.mc.mydomain.com
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type UserStore struct {
@@ -58,6 +60,23 @@ func (s *UserStore) Authenticate(userID, token string) (*UserInfo, error) {
 		return nil, fmt.Errorf("invalid token for user: %s", userID)
 	}
 	return user, nil
+}
+
+// UpdateUser modifies an existing user's subdomain or token.
+func (s *UserStore) UpdateUser(userID, subdomain, token string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	user, ok := s.users[userID]
+	if !ok {
+		return fmt.Errorf("unknown user: %s", userID)
+	}
+	
+	user.Subdomain = subdomain
+	if token != "" {
+		user.Token = token
+	}
+	return nil
 }
 
 // GetUserBySubdomain finds a user by their subdomain prefix.

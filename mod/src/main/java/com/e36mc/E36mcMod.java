@@ -59,8 +59,6 @@ public class E36mcMod implements ClientModInitializer {
             return;
         }
 
-        // TEST
-        LanEventHandler.displayWhitelistInfo("test", "test");
 
 
         // Stop any existing tunnel

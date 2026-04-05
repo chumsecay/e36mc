@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +22,15 @@ type Session struct {
 
 	// Pending player connections waiting for mod to open data channel
 	pendingConns map[string]chan net.Conn // conn_id → channel to deliver data conn
+
+	// Bandwidth stats
+	ConnectedAt    time.Time
+	RxBytes        atomic.Uint64
+	TxBytes        atomic.Uint64
+	LastRxBytes    uint64
+	LastTxBytes    uint64
+	CurrentRxSpeed uint64 // bytes/sec
+	CurrentTxSpeed uint64 // bytes/sec
 }
 
 func NewSession(userID, subdomain, domain string, controlConn net.Conn) *Session {
@@ -28,6 +38,7 @@ func NewSession(userID, subdomain, domain string, controlConn net.Conn) *Session
 		UserID:       userID,
 		Subdomain:    subdomain,
 		Domain:       domain,
+		ConnectedAt:  time.Now(),
 		controlConn:  controlConn,
 		pendingConns: make(map[string]chan net.Conn),
 	}
@@ -92,8 +103,33 @@ type SessionManager struct {
 }
 
 func NewSessionManager() *SessionManager {
-	return &SessionManager{
+	sm := &SessionManager{
 		sessions: make(map[string]*Session),
+	}
+	go sm.statsLoop()
+	return sm
+}
+
+// statsLoop computes the current bandwidth speed for all sessions every second.
+func (sm *SessionManager) statsLoop() {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		sm.mu.RLock()
+		for _, sess := range sm.sessions {
+			sess.mu.Lock()
+			currentRx := sess.RxBytes.Load()
+			currentTx := sess.TxBytes.Load()
+
+			sess.CurrentRxSpeed = currentRx - sess.LastRxBytes
+			sess.CurrentTxSpeed = currentTx - sess.LastTxBytes
+
+			sess.LastRxBytes = currentRx
+			sess.LastTxBytes = currentTx
+			sess.mu.Unlock()
+		}
+		sm.mu.RUnlock()
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 // --- Minecraft Handshake Packet Parser ---
@@ -229,34 +230,50 @@ func handlePlayerConnection(playerConn net.Conn, domain string, sessionMgr *Sess
 	}
 
 	// Bridge the two connections
-	go bridgeConnections(playerConn, dataConn)
+	go bridgeConnections(playerConn, dataConn, sess)
+}
+
+// counterReader wraps an io.Reader and atomically increments a byte counter on Read.
+type counterReader struct {
+	r       io.Reader
+	counter *atomic.Uint64
+}
+
+func (c *counterReader) Read(p []byte) (int, error) {
+	n, err := c.r.Read(p)
+	if n > 0 {
+		c.counter.Add(uint64(n))
+	}
+	return n, err
 }
 
 // bridgeConnections pipes data bidirectionally between two connections.
-func bridgeConnections(conn1, conn2 net.Conn) {
+func bridgeConnections(playerConn, dataConn net.Conn, sess *Session) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	// conn1 → conn2
+	// playerConn → dataConn (RxBytes)
 	go func() {
 		defer wg.Done()
-		io.Copy(conn2, conn1)
+		reader := &counterReader{r: playerConn, counter: &sess.RxBytes}
+		io.Copy(dataConn, reader)
 		// Signal the other direction to stop by closing write half
-		if tc, ok := conn2.(*net.TCPConn); ok {
+		if tc, ok := dataConn.(*net.TCPConn); ok {
 			tc.CloseWrite()
 		}
 	}()
 
-	// conn2 → conn1
+	// dataConn → playerConn (TxBytes)
 	go func() {
 		defer wg.Done()
-		io.Copy(conn1, conn2)
-		if tc, ok := conn1.(*net.TCPConn); ok {
+		reader := &counterReader{r: dataConn, counter: &sess.TxBytes}
+		io.Copy(playerConn, reader)
+		if tc, ok := playerConn.(*net.TCPConn); ok {
 			tc.CloseWrite()
 		}
 	}()
 
 	wg.Wait()
-	conn1.Close()
-	conn2.Close()
+	playerConn.Close()
+	dataConn.Close()
 }

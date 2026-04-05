@@ -8,21 +8,32 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
-//go:embed web/index.html
+//go:embed web/*
 var webFS embed.FS
 
 type WebServer struct {
-	cfg       *Config
-	userStore *UserStore
+	cfg        *Config
+	userStore  *UserStore
+	sessionMgr *SessionManager
 }
 
-func NewWebServer(cfg *Config, userStore *UserStore) *WebServer {
+func NewWebServer(cfg *Config, userStore *UserStore, sessionMgr *SessionManager) *WebServer {
 	return &WebServer{
-		cfg:       cfg,
-		userStore: userStore,
+		cfg:        cfg,
+		userStore:  userStore,
+		sessionMgr: sessionMgr,
 	}
+}
+
+type UserStatus struct {
+	UserInfo
+	IsOnline    bool      `json:"is_online"`
+	ConnectedAt time.Time `json:"connected_at"`
+	TxSpeed     uint64    `json:"tx_speed"` // bytes/sec to player
+	RxSpeed  uint64 `json:"rx_speed"` // bytes/sec from player
 }
 
 // Middleware to check admin token
@@ -48,9 +59,23 @@ func (ws *WebServer) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ws.userStore.mu.RLock()
-	var users []UserInfo
+	var users []UserStatus
 	for _, u := range ws.userStore.users {
-		users = append(users, *u)
+		status := UserStatus{
+			UserInfo: *u,
+		}
+
+		sess := ws.sessionMgr.GetSession(u.UserID)
+		if sess != nil {
+			status.IsOnline = true
+			status.ConnectedAt = sess.ConnectedAt
+			sess.mu.Lock()
+			status.TxSpeed = sess.CurrentTxSpeed
+			status.RxSpeed = sess.CurrentRxSpeed
+			sess.mu.Unlock()
+		}
+
+		users = append(users, status)
 	}
 	ws.userStore.mu.RUnlock()
 
@@ -75,10 +100,13 @@ func (ws *WebServer) handleAddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newUser.CreatedAt = time.Now()
+
 	ws.userStore.mu.Lock()
 	ws.userStore.users[newUser.UserID] = &newUser
-	err := ws.userStore.SaveToFile(ws.cfg.UsersFile)
 	ws.userStore.mu.Unlock()
+
+	err := ws.userStore.SaveToFile(ws.cfg.UsersFile)
 
 	if err != nil {
 		http.Error(w, "Failed to save users", http.StatusInternalServerError)
@@ -102,10 +130,41 @@ func (ws *WebServer) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	ws.userStore.mu.Lock()
 	delete(ws.userStore.users, userID)
-	err := ws.userStore.SaveToFile(ws.cfg.UsersFile)
 	ws.userStore.mu.Unlock()
 
+	err := ws.userStore.SaveToFile(ws.cfg.UsersFile)
+
 	if err != nil {
+		http.Error(w, "Failed to save users", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (ws *WebServer) handleEditUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var update UserInfo
+	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if update.UserID == "" {
+		http.Error(w, "Missing user id", http.StatusBadRequest)
+		return
+	}
+
+	if err := ws.userStore.UpdateUser(update.UserID, update.Subdomain, update.Token); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := ws.userStore.SaveToFile(ws.cfg.UsersFile); err != nil {
 		http.Error(w, "Failed to save users", http.StatusInternalServerError)
 		return
 	}
@@ -126,6 +185,7 @@ func (ws *WebServer) Start() error {
 	// API endpoints
 	mux.HandleFunc("/api/users", ws.authMiddleware(ws.handleGetUsers))
 	mux.HandleFunc("/api/users/add", ws.authMiddleware(ws.handleAddUser))
+	mux.HandleFunc("/api/users/edit", ws.authMiddleware(ws.handleEditUser))
 	mux.HandleFunc("/api/users/delete", ws.authMiddleware(ws.handleDeleteUser))
 
 	addr := fmt.Sprintf(":%d", ws.cfg.WebPort)
