@@ -59,6 +59,10 @@ public class E36mcMod implements ClientModInitializer {
             return;
         }
 
+        // TEST
+        LanEventHandler.displayWhitelistInfo("test", "test");
+
+
         // Stop any existing tunnel
         stopTunnel();
 
@@ -95,13 +99,20 @@ public class E36mcMod implements ClientModInitializer {
             }
 
             if (Files.exists(configFile)) {
-                String json = Files.readString(configFile);
-                config = new Gson().fromJson(json, JsonObject.class);
-            } else {
+                try {
+                    String json = Files.readString(configFile);
+                    config = new Gson().fromJson(json, JsonObject.class);
+                } catch (Exception e) {
+                    LOGGER.error("[e36mc] Failed to parse config JSON, resetting to defaults.");
+                }
+            }
+            if (config == null) {
+                config = new JsonObject();
                 saveNeeded = true;
             }
 
-            if (config.has("relay_host")) {
+            // Relay Host
+            if (config.has("relay_host") && !config.get("relay_host").isJsonNull()) {
                 relayHost = config.get("relay_host").getAsString();
                 if ("localhost".equals(relayHost) || "127.0.0.1".equals(relayHost)) {
                     relayHost = "mc.sigmaskibidi.click";
@@ -113,24 +124,36 @@ public class E36mcMod implements ClientModInitializer {
                 saveNeeded = true; 
             }
 
-            if (config.has("relay_port")) relayPort = config.get("relay_port").getAsInt();
-            else { config.addProperty("relay_port", 25500); saveNeeded = true; }
+            // Relay Port
+            if (config.has("relay_port") && !config.get("relay_port").isJsonNull()) {
+                relayPort = config.get("relay_port").getAsInt();
+            } else { 
+                config.addProperty("relay_port", 25500); 
+                saveNeeded = true; 
+            }
 
-            if (config.has("user_id")) userId = config.get("user_id").getAsString();
-            if (userId.isEmpty()) {
+            // User ID
+            if (config.has("user_id") && !config.get("user_id").isJsonNull()) {
+                userId = config.get("user_id").getAsString();
+            }
+            if (userId == null || userId.isEmpty()) {
                 userId = "user-" + java.util.UUID.randomUUID().toString().substring(0, 8);
                 config.addProperty("user_id", userId);
                 saveNeeded = true;
             }
 
-            if (config.has("token")) token = config.get("token").getAsString();
-            if (token.isEmpty()) {
+            // Token
+            if (config.has("token") && !config.get("token").isJsonNull()) {
+                token = config.get("token").getAsString();
+            }
+            if (token == null || token.isEmpty()) {
                 token = "e36mc-" + java.util.UUID.randomUUID().toString().replace("-", "");
                 config.addProperty("token", token);
                 saveNeeded = true;
             }
 
-            if (config.has("trust_all_certs")) {
+            // Trust All Certs
+            if (config.has("trust_all_certs") && !config.get("trust_all_certs").isJsonNull()) {
                 trustAllCerts = config.get("trust_all_certs").getAsBoolean();
                 if (!trustAllCerts) {
                     trustAllCerts = true;
@@ -138,8 +161,8 @@ public class E36mcMod implements ClientModInitializer {
                     saveNeeded = true;
                 }
             } else { 
+                trustAllCerts = true;
                 config.addProperty("trust_all_certs", true); 
-                trustAllCerts = true; 
                 saveNeeded = true; 
             }
 

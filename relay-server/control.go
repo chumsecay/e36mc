@@ -40,6 +40,7 @@ func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *
 	if err != nil {
 		log.Printf("[auth] failed to parse auth payload: %v", err)
 		WriteMessage(conn, MsgAuthErr, &AuthErrPayload{Reason: "invalid payload"})
+		time.Sleep(500 * time.Millisecond)
 		conn.Close()
 		return
 	}
@@ -48,6 +49,7 @@ func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *
 	if err != nil {
 		log.Printf("[auth] auth failed for user %s: %v", auth.UserID, err)
 		WriteMessage(conn, MsgAuthErr, &AuthErrPayload{Reason: "authentication failed"})
+		time.Sleep(500 * time.Millisecond) // Give client time to read before TCP FIN
 		conn.Close()
 		return
 	}

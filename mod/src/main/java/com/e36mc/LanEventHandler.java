@@ -33,13 +33,7 @@ public class LanEventHandler {
         if (client != null) {
             client.execute(() -> {
                 if (client.player != null) {
-                    Text prefix = Text.literal("§e§lPublic address: §f");
-                    Text address = Text.literal(domain)
-                            .styled(style -> style
-                                    .withClickEvent(new net.minecraft.text.ClickEvent(net.minecraft.text.ClickEvent.Action.COPY_TO_CLIPBOARD, domain))
-                                    .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy to clipboard")))
-                                    .withUnderline(true));
-                    client.player.sendMessage(prefix.copy().append(address), false);
+                    client.player.sendMessage(Text.literal("§e§lPublic address: §f" + domain), false);
                 }
             });
         }
@@ -62,22 +56,9 @@ public class LanEventHandler {
             client.execute(() -> {
                 if (client.player != null) {
                     client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cConnection refused. You need to be whitelisted!"), false);
-                    client.player.sendMessage(Text.literal("§eClick the info below to copy and send to the server admin:"), false);
-
-                    Text idPrefix = Text.literal("§7User ID: §f");
-                    Text idText = Text.literal(userId).styled(style -> style
-                            .withClickEvent(new net.minecraft.text.ClickEvent(net.minecraft.text.ClickEvent.Action.COPY_TO_CLIPBOARD, userId))
-                            .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy ID")))
-                            .withUnderline(true));
-
-                    Text tokenPrefix = Text.literal("§7Token: §f");
-                    Text tokenText = Text.literal(token).styled(style -> style
-                            .withClickEvent(new net.minecraft.text.ClickEvent(net.minecraft.text.ClickEvent.Action.COPY_TO_CLIPBOARD, token))
-                            .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy token")))
-                            .withUnderline(true));
-
-                    client.player.sendMessage(idPrefix.copy().append(idText), false);
-                    client.player.sendMessage(tokenPrefix.copy().append(tokenText), false);
+                    client.player.sendMessage(Text.literal("§eSend this info to the admin:"), false);
+                    client.player.sendMessage(Text.literal("§7User ID: §f" + userId), false);
+                    client.player.sendMessage(Text.literal("§7Token: §f" + token), false);
                 }
             });
         }
