@@ -294,29 +294,70 @@
             } catch (e) {
                 console.error("Failed to fetch users", e);
                 alert("Network error: " + e.message);
-                document.getElementById('users-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--danger)">Error connecting to server</td></tr>';
+                const tbody = document.getElementById('users-body');
+                tbody.replaceChildren();
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 4;
+                td.style.textAlign = 'center';
+                td.style.color = 'var(--danger)';
+                td.textContent = 'Error connecting to server';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
             }
         }
 
         function renderUsers(users) {
             const tbody = document.getElementById('users-body');
-            tbody.innerHTML = '';
+            tbody.replaceChildren();
             
             if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">No users found</td></tr>';
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 4;
+                td.style.textAlign = 'center';
+                td.style.color = 'var(--text-muted)';
+                td.textContent = 'No users found';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
                 return;
             }
 
             users.forEach(u => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${u.user_id}</strong></td>
-                    <td><span class="badge">${u.subdomain}</span></td>
-                    <td><code style="background:var(--bg); padding:0.2rem 0.4rem; border-radius:4px; color:var(--text-muted)">${u.token.substring(0,6)}...</code></td>
-                    <td>
-                        <button class="danger" onclick="deleteUser('${u.user_id}')">Delete</button>
-                    </td>
-                `;
+                
+                const td1 = document.createElement('td');
+                const strong = document.createElement('strong');
+                strong.textContent = u.user_id;
+                td1.appendChild(strong);
+                
+                const td2 = document.createElement('td');
+                const span = document.createElement('span');
+                span.className = 'badge';
+                span.textContent = u.subdomain;
+                td2.appendChild(span);
+                
+                const td3 = document.createElement('td');
+                const code = document.createElement('code');
+                code.style.background = 'var(--bg)';
+                code.style.padding = '0.2rem 0.4rem';
+                code.style.borderRadius = '4px';
+                code.style.color = 'var(--text-muted)';
+                code.textContent = u.token.substring(0,6) + '...';
+                td3.appendChild(code);
+                
+                const td4 = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'danger';
+                btn.textContent = 'Delete';
+                btn.onclick = () => deleteUser(u.user_id);
+                td4.appendChild(btn);
+                
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
+                
                 tbody.appendChild(tr);
             });
         }
