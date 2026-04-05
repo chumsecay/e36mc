@@ -197,12 +197,14 @@
     <!-- Login Screen -->
     <div id="login-overlay" class="modal-overlay">
         <div class="modal">
-            <h2 style="margin-top:0;">Login</h2>
-            <div class="form-group">
-                <label>Admin Token</label>
-                <input type="password" id="admin-token" placeholder="Enter admin token...">
-            </div>
-            <button style="width:100%" onclick="login()">Enter Dashboard</button>
+            <form onsubmit="event.preventDefault(); login();">
+                <h2 style="margin-top:0;">Login</h2>
+                <div class="form-group">
+                    <label>Admin Token</label>
+                    <input type="password" id="admin-token" placeholder="Enter admin token...">
+                </div>
+                <button type="submit" style="width:100%">Enter Dashboard</button>
+            </form>
         </div>
     </div>
 
@@ -266,7 +268,7 @@
         }
 
         function login() {
-            token = document.getElementById('admin-token').value;
+            token = document.getElementById('admin-token').value.trim();
             localStorage.setItem('e36mc_admin_token', token);
             document.getElementById('login-overlay').classList.remove('active');
             fetchUsers();
@@ -291,6 +293,8 @@
                 renderUsers(users);
             } catch (e) {
                 console.error("Failed to fetch users", e);
+                alert("Network error: " + e.message);
+                document.getElementById('users-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--danger)">Error connecting to server</td></tr>';
             }
         }
 
