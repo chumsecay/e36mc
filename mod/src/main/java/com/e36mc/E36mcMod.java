@@ -79,43 +79,59 @@ public class E36mcMod implements ClientModInitializer {
     }
 
     /**
-     * Loads configuration from config/e36mc.json
+     * Loads configuration from config/e36mc.json.
+     * Auto-generates userId and token if missing.
      */
     private void loadConfig() {
         Path configDir = Path.of("config");
         Path configFile = configDir.resolve("e36mc.json");
+
+        boolean saveNeeded = false;
+        JsonObject config = new JsonObject();
 
         try {
             if (!Files.exists(configDir)) {
                 Files.createDirectories(configDir);
             }
 
-            if (!Files.exists(configFile)) {
-                // Create default config
-                JsonObject defaults = new JsonObject();
-                defaults.addProperty("relay_host", "localhost");
-                defaults.addProperty("relay_port", 25500);
-                defaults.addProperty("user_id", "");
-                defaults.addProperty("token", "");
-                defaults.addProperty("trust_all_certs", false);
-
-                Files.writeString(configFile, new Gson().toJson(defaults));
-                LOGGER.info("[e36mc] Created default config at {}", configFile);
-                return;
+            if (Files.exists(configFile)) {
+                String json = Files.readString(configFile);
+                config = new Gson().fromJson(json, JsonObject.class);
+            } else {
+                saveNeeded = true;
             }
 
-            String json = Files.readString(configFile);
-            JsonObject config = new Gson().fromJson(json, JsonObject.class);
-
             if (config.has("relay_host")) relayHost = config.get("relay_host").getAsString();
-            if (config.has("relay_port")) relayPort = config.get("relay_port").getAsInt();
-            if (config.has("user_id")) userId = config.get("user_id").getAsString();
-            if (config.has("token")) token = config.get("token").getAsString();
-            if (config.has("trust_all_certs")) trustAllCerts = config.get("trust_all_certs").getAsBoolean();
+            else { config.addProperty("relay_host", "localhost"); saveNeeded = true; }
 
-            LOGGER.info("[e36mc] Config loaded from {}", configFile);
+            if (config.has("relay_port")) relayPort = config.get("relay_port").getAsInt();
+            else { config.addProperty("relay_port", 25500); saveNeeded = true; }
+
+            if (config.has("user_id")) userId = config.get("user_id").getAsString();
+            if (userId.isEmpty()) {
+                userId = "user-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+                config.addProperty("user_id", userId);
+                saveNeeded = true;
+            }
+
+            if (config.has("token")) token = config.get("token").getAsString();
+            if (token.isEmpty()) {
+                token = "e36mc-" + java.util.UUID.randomUUID().toString().replace("-", "");
+                config.addProperty("token", token);
+                saveNeeded = true;
+            }
+
+            if (config.has("trust_all_certs")) trustAllCerts = config.get("trust_all_certs").getAsBoolean();
+            else { config.addProperty("trust_all_certs", false); saveNeeded = true; }
+
+            if (saveNeeded) {
+                Files.writeString(configFile, new Gson().toJson(config));
+                LOGGER.info("[e36mc] Updated config at {} with auto-generated values", configFile);
+            } else {
+                LOGGER.info("[e36mc] Config loaded from {}", configFile);
+            }
         } catch (IOException e) {
-            LOGGER.error("[e36mc] Failed to load config: {}", e.getMessage());
+            LOGGER.error("[e36mc] Failed to load/save config: {}", e.getMessage());
         }
     }
 }

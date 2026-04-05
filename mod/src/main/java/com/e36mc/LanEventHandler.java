@@ -54,6 +54,36 @@ public class LanEventHandler {
     }
 
     /**
+     * Displays whitelist instructions and clickable user identity.
+     */
+    public static void displayWhitelistInfo(String userId, String token) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client != null) {
+            client.execute(() -> {
+                if (client.player != null) {
+                    client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cConnection refused. You need to be whitelisted!"), false);
+                    client.player.sendMessage(Text.literal("§eClick the info below to copy and send to the server admin:"), false);
+
+                    Text idPrefix = Text.literal("§7User ID: §f");
+                    Text idText = Text.literal(userId).styled(style -> style
+                            .withClickEvent(new net.minecraft.text.ClickEvent(net.minecraft.text.ClickEvent.Action.COPY_TO_CLIPBOARD, userId))
+                            .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy ID")))
+                            .withUnderline(true));
+
+                    Text tokenPrefix = Text.literal("§7Token: §f");
+                    Text tokenText = Text.literal(token).styled(style -> style
+                            .withClickEvent(new net.minecraft.text.ClickEvent(net.minecraft.text.ClickEvent.Action.COPY_TO_CLIPBOARD, token))
+                            .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy token")))
+                            .withUnderline(true));
+
+                    client.player.sendMessage(idPrefix.copy().append(idText), false);
+                    client.player.sendMessage(tokenPrefix.copy().append(tokenText), false);
+                }
+            });
+        }
+    }
+
+    /**
      * Displays a reconnection attempt message.
      */
     public static void displayReconnecting(int attempt) {

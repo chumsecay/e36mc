@@ -132,7 +132,7 @@ public class TunnelClient {
                 } else if (TunnelProtocol.MSG_AUTH_ERR.equals(response.type)) {
                     String reason = response.payload.get("reason").getAsString();
                     E36mcMod.LOGGER.error("[e36mc] Auth failed: {}", reason);
-                    LanEventHandler.sendChatMessage("§c[e36mc] Auth failed: " + reason);
+                    LanEventHandler.displayWhitelistInfo(userId, token);
                     running.set(false);
                     return;
                 }
