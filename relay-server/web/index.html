@@ -197,7 +197,7 @@
     <!-- Login Screen -->
     <div id="login-overlay" class="modal-overlay">
         <div class="modal">
-            <form onsubmit="event.preventDefault(); login();">
+            <form onsubmit="login(); return false;">
                 <h2 style="margin-top:0;">Login</h2>
                 <div class="form-group">
                     <label>Admin Token</label>
