@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e36mc Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            margin: 0;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.danger {
+            background-color: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        button.danger:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        #login-overlay {
+            z-index: 100;
+            opacity: 1;
+            pointer-events: all;
+            background: var(--bg);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Screen -->
+    <div id="login-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-top:0;">Login</h2>
+            <div class="form-group">
+                <label>Admin Token</label>
+                <input type="password" id="admin-token" placeholder="Enter admin token...">
+            </div>
+            <button style="width:100%" onclick="login()">Enter Dashboard</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>e36mc Dashboard</h1>
+            <button class="danger" onclick="logout()">Logout</button>
+        </header>
+
+        <div class="card">
+            <div class="flex-between">
+                <h2 style="margin:0;">Users</h2>
+                <button onclick="showAddModal()">+ Add User</button>
+            </div>
+            
+            <table id="users-table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Subdomain</th>
+                        <th>Token</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-body">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="user-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h2 id="modal-title" style="margin-top:0;">Add User</h2>
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" id="input-userid" placeholder="e.g. alice">
+            </div>
+            <div class="form-group">
+                <label>Subdomain</label>
+                <input type="text" id="input-subdomain" placeholder="e.g. alice">
+            </div>
+            <div class="form-group">
+                <label>Token</label>
+                <input type="text" id="input-token" placeholder="Secure random token">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+                <button class="danger" onclick="hideAddModal()" style="border:none;">Cancel</button>
+                <button onclick="saveUser()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('e36mc_admin_token') || '';
+
+        if (token) {
+            document.getElementById('login-overlay').classList.remove('active');
+            fetchUsers();
+        }
+
+        function login() {
+            token = document.getElementById('admin-token').value;
+            localStorage.setItem('e36mc_admin_token', token);
+            document.getElementById('login-overlay').classList.remove('active');
+            fetchUsers();
+        }
+
+        function logout() {
+            localStorage.removeItem('e36mc_admin_token');
+            location.reload();
+        }
+
+        async function fetchUsers() {
+            try {
+                const res = await fetch('/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.status === 401) {
+                    alert('Invalid token');
+                    logout();
+                    return;
+                }
+                const users = await res.json();
+                renderUsers(users);
+            } catch (e) {
+                console.error("Failed to fetch users", e);
+            }
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-body');
+            tbody.innerHTML = '';
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">No users found</td></tr>';
+                return;
+            }
+
+            users.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${u.user_id}</strong></td>
+                    <td><span class="badge">${u.subdomain}</span></td>
+                    <td><code style="background:var(--bg); padding:0.2rem 0.4rem; border-radius:4px; color:var(--text-muted)">${u.token.substring(0,6)}...</code></td>
+                    <td>
+                        <button class="danger" onclick="deleteUser('${u.user_id}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showAddModal() {
+            document.getElementById('modal-title').innerText = 'Add User';
+            document.getElementById('input-userid').value = '';
+            document.getElementById('input-subdomain').value = '';
+            document.getElementById('input-token').value = 'e36mc-' + Math.random().toString(36).substring(2, 10);
+            document.getElementById('user-modal-overlay').classList.add('active');
+        }
+
+        function hideAddModal() {
+            document.getElementById('user-modal-overlay').classList.remove('active');
+        }
+
+        async function saveUser() {
+            const user = {
+                user_id: document.getElementById('input-userid').value,
+                subdomain: document.getElementById('input-subdomain').value,
+                token: document.getElementById('input-token').value
+            };
+
+            const res = await fetch('/api/users/add', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(user)
+            });
+
+            if (res.ok) {
+                hideAddModal();
+                fetchUsers();
+            } else {
+                alert('Failed to save user: ' + await res.text());
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm(`Are you sure you want to delete ${userId}?`)) return;
+
+            const res = await fetch(`/api/users/delete?id=${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                fetchUsers();
+            } else {
+                alert('Failed to delete user');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -11,6 +11,8 @@ type Config struct {
 	ControlPort int `json:"control_port"`
 	// Port for external Minecraft players (plain TCP, handshake-routed)
 	PublicPort int `json:"public_port"`
+	// Port for the management Web UI
+	WebPort int `json:"web_port"`
 	// Base domain, e.g. "mc.mydomain.com"
 	Domain string `json:"domain"`
 	// TLS certificate and key files (Let's Encrypt)
@@ -18,6 +20,8 @@ type Config struct {
 	KeyFile  string `json:"key_file"`
 	// Path to users.json
 	UsersFile string `json:"users_file"`
+	// Admin token for Web UI authentication
+	AdminToken string `json:"admin_token"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -36,6 +40,9 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	if cfg.PublicPort == 0 {
 		cfg.PublicPort = 25565
+	}
+	if cfg.WebPort == 0 {
+		cfg.WebPort = 8080
 	}
 	if cfg.UsersFile == "" {
 		cfg.UsersFile = "users.json"

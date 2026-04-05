@@ -52,6 +52,14 @@ func main() {
 	}
 	log.Printf("[main] control listener (TLS) on %s", controlAddr)
 
+	// Start Web Server
+	webServer := NewWebServer(cfg, userStore)
+	go func() {
+		if err := webServer.Start(); err != nil {
+			log.Fatalf("Failed to start web server: %v", err)
+		}
+	}()
+
 	// Accept control connections
 	for {
 		conn, err := ln.Accept()

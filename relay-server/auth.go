@@ -72,3 +72,24 @@ func (s *UserStore) GetUserBySubdomain(subdomain string) *UserInfo {
 	}
 	return nil
 }
+
+// SaveToFile writes the current store to the specified path.
+// The caller should hold the lock if they care about consistency, but
+// we do a quick snapshot internally anyway just in case to avoid panic.
+func (s *UserStore) SaveToFile(path string) error {
+	s.mu.RLock()
+	var userList []UserInfo
+	for _, u := range s.users {
+		userList = append(userList, *u)
+	}
+	s.mu.RUnlock()
+
+	data, err := json.MarshalIndent(userList, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal users: %w", err)
+	}
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		return fmt.Errorf("write users file: %w", err)
+	}
+	return nil
+}
