@@ -101,8 +101,17 @@ public class E36mcMod implements ClientModInitializer {
                 saveNeeded = true;
             }
 
-            if (config.has("relay_host")) relayHost = config.get("relay_host").getAsString();
-            else { config.addProperty("relay_host", "mc.sigmaskibidi.click"); saveNeeded = true; }
+            if (config.has("relay_host")) {
+                relayHost = config.get("relay_host").getAsString();
+                if ("localhost".equals(relayHost) || "127.0.0.1".equals(relayHost)) {
+                    relayHost = "mc.sigmaskibidi.click";
+                    config.addProperty("relay_host", relayHost);
+                    saveNeeded = true;
+                }
+            } else { 
+                config.addProperty("relay_host", "mc.sigmaskibidi.click"); 
+                saveNeeded = true; 
+            }
 
             if (config.has("relay_port")) relayPort = config.get("relay_port").getAsInt();
             else { config.addProperty("relay_port", 25500); saveNeeded = true; }
@@ -121,8 +130,18 @@ public class E36mcMod implements ClientModInitializer {
                 saveNeeded = true;
             }
 
-            if (config.has("trust_all_certs")) trustAllCerts = config.get("trust_all_certs").getAsBoolean();
-            else { config.addProperty("trust_all_certs", true); trustAllCerts = true; saveNeeded = true; }
+            if (config.has("trust_all_certs")) {
+                trustAllCerts = config.get("trust_all_certs").getAsBoolean();
+                if (!trustAllCerts) {
+                    trustAllCerts = true;
+                    config.addProperty("trust_all_certs", trustAllCerts);
+                    saveNeeded = true;
+                }
+            } else { 
+                config.addProperty("trust_all_certs", true); 
+                trustAllCerts = true; 
+                saveNeeded = true; 
+            }
 
             if (saveNeeded) {
                 Files.writeString(configFile, new Gson().toJson(config));
