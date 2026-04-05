@@ -41,9 +41,16 @@ public class LanEventHandler {
             if (client.player == null) return;
 
             client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
-            client.player.sendMessage(Text.literal("§eĐịa chỉ: §f" + safeDomain), false);
-            client.player.sendMessage(Text.literal("§eToken: §6" + safeToken), false);
-            client.player.sendMessage(Text.literal("§7(V5.0: Hãy copy thủ công nếu Click không hiện)"), false);
+            
+            MutableText domainText = Text.literal("§eĐịa chỉ: §f" + safeDomain + " ")
+                .append(Text.literal("§b§n[Copy]")
+                .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain))));
+            client.player.sendMessage(domainText, false);
+
+            MutableText tokenText = Text.literal("§eToken: §6" + safeToken + " ")
+                .append(Text.literal("§c§n[Copy]")
+                .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken))));
+            client.player.sendMessage(tokenText, false);
         });
     }
 
