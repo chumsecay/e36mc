@@ -42,14 +42,39 @@ public class LanEventHandler {
 
             client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
             
+            // Use reflection for ClickEvent to avoid InstantiationError on 1.21.1+ (where it is a Record)
+            ClickEvent domainClick = null;
+            ClickEvent tokenClick = null;
+            try {
+                var constructor = ClickEvent.class.getConstructor(ClickEvent.Action.class, String.class);
+                domainClick = constructor.newInstance(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain);
+                tokenClick = constructor.newInstance(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
+            } catch (Exception e) {
+                E36mcMod.LOGGER.error("[e36mc] Failed to create ClickEvent via reflection: {}", e.getMessage());
+            }
+
+            final ClickEvent finalDomainClick = domainClick;
+            final ClickEvent finalTokenClick = tokenClick;
+
+            // Mask the token for visual display (e.g. e36mc-1a2b... -> e36mc-••••••••)
+            String maskedToken = "Unknown";
+            if (!"Unknown".equals(safeToken)) {
+                int dashIndex = safeToken.indexOf('-');
+                if (dashIndex != -1 && dashIndex + 1 < safeToken.length()) {
+                    maskedToken = safeToken.substring(0, dashIndex + 1) + "••••••••";
+                } else {
+                    maskedToken = "••••••••••••";
+                }
+            }
+
             MutableText domainText = Text.literal("§eĐịa chỉ: §f" + safeDomain + " ")
-                .append(Text.literal("§b§n[Copy]")
-                .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain))));
+                .append(Text.literal("§b§n[Bấm vào đây để Copy]")
+                .styled(style -> finalDomainClick != null ? style.withClickEvent(finalDomainClick) : style));
             client.player.sendMessage(domainText, false);
 
-            MutableText tokenText = Text.literal("§eToken: §6" + safeToken + " ")
-                .append(Text.literal("§c§n[Copy]")
-                .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken))));
+            MutableText tokenText = Text.literal("§eToken: §6" + maskedToken + " ")
+                .append(Text.literal("§c§n[Bấm vào đây để Copy]")
+                .styled(style -> finalTokenClick != null ? style.withClickEvent(finalTokenClick) : style));
             client.player.sendMessage(tokenText, false);
         });
     }
@@ -80,19 +105,34 @@ public class LanEventHandler {
                 client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang là Khép Kín (Private)."), false);
             }
 
+            ClickEvent tokenClick = null;
+            try {
+                var constructor = ClickEvent.class.getConstructor(ClickEvent.Action.class, String.class);
+                tokenClick = constructor.newInstance(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
+            } catch (Exception e) {
+                E36mcMod.LOGGER.error("[e36mc] Failed to create ClickEvent via reflection: {}", e.getMessage());
+            }
+
+            final ClickEvent finalTokenClick = tokenClick;
+
             MutableText tokenText = Text.literal("§eGửi Token này cho Admin để được cấp quyền: ")
                 .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
-                .styled(style -> style
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken))
-                ));
+                .styled(style -> finalTokenClick != null ? style.withClickEvent(finalTokenClick) : style));
             client.player.sendMessage(tokenText, false);
         });
+    }
+
+    /**
+     * Displays a connection error with specific details.
+     */
+    public static void displayConnectionError(String detail) {
+        sendChatMessage("§c§l[e36mc] §r§cLỗi kết nối: " + detail);
     }
 
     /**
      * Displays a reconnection attempt message.
      */
     public static void displayReconnecting(int attempt) {
-        sendChatMessage("§e[e36mc] Reconnecting... (attempt " + attempt + ")");
+        sendChatMessage("§e[e36mc] Đang kết nối lại... (Lần " + attempt + ")");
     }
 }

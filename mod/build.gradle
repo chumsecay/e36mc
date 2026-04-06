@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.9-SNAPSHOT'
+    id 'fabric-loom' version '1.9.2'
 }
 
 version = project.mod_version
@@ -10,7 +10,8 @@ base {
 }
 
 repositories {
-    // Fabric Maven
+    mavenCentral()
+    maven { url = "https://maven.fabricmc.net/" }
 }
 
 dependencies {

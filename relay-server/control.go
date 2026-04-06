@@ -65,6 +65,7 @@ func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *
 				Token:     auth.Token,
 				Subdomain: "guest-" + suffix,
 				CreatedAt: time.Now(),
+				IsGuest:   true,
 			}
 			userStore.mu.Lock()
 			userStore.users[user.UserID] = user

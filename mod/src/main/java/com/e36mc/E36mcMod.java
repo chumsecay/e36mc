@@ -24,7 +24,7 @@ public class E36mcMod implements ClientModInitializer {
 
     // Config values
     public static String relayHost = "mc.sigmaskibidi.click";
-    public static int relayPort = 25500;
+    public static int relayPort = 8443;
     public static String token = "";
     public static boolean trustAllCerts = true; // Set to true to allow self-signed certs
 
@@ -111,11 +111,6 @@ public class E36mcMod implements ClientModInitializer {
             // Relay Host
             if (config.has("relay_host") && !config.get("relay_host").isJsonNull()) {
                 relayHost = config.get("relay_host").getAsString();
-                if ("localhost".equals(relayHost) || "127.0.0.1".equals(relayHost)) {
-                    relayHost = "mc.sigmaskibidi.click";
-                    config.addProperty("relay_host", relayHost);
-                    saveNeeded = true;
-                }
             } else { 
                 config.addProperty("relay_host", "mc.sigmaskibidi.click"); 
                 saveNeeded = true; 
@@ -125,7 +120,7 @@ public class E36mcMod implements ClientModInitializer {
             if (config.has("relay_port") && !config.get("relay_port").isJsonNull()) {
                 relayPort = config.get("relay_port").getAsInt();
             } else { 
-                config.addProperty("relay_port", 25500); 
+                config.addProperty("relay_port", 8443); 
                 saveNeeded = true; 
             }
 

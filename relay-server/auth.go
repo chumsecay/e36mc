@@ -17,6 +17,7 @@ type UserInfo struct {
 	Token     string    `json:"token"`
 	Subdomain string    `json:"subdomain"` // e.g. "alice" → alice.mc.mydomain.com
 	CreatedAt time.Time `json:"created_at"`
+	IsGuest   bool      `json:"is_guest"`
 }
 
 type UserStore struct {

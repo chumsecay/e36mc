@@ -100,11 +100,12 @@ public class TunnelClient {
                 // Create TLS connection
                 SSLSocketFactory factory = createSSLSocketFactory();
                 controlSocket = (SSLSocket) factory.createSocket(relayHost, relayPort);
+                configureSocket(controlSocket);
                 controlSocket.startHandshake();
                 controlOut = controlSocket.getOutputStream();
                 controlIn = controlSocket.getInputStream();
 
-                E36mcMod.LOGGER.info("[e36mc] TLS connected to relay");
+                E36mcMod.LOGGER.info("[e36mc] TLS connected to relay with SNI");
 
                 // Send AUTH
                 TunnelProtocol.sendAuth(controlOut, token);
@@ -143,8 +144,15 @@ public class TunnelClient {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
+            } catch (java.net.ConnectException e) {
+                E36mcMod.LOGGER.error("[e36mc] Connection refused: {}:{}", relayHost, relayPort);
+                LanEventHandler.displayConnectionError("Connection Refused (Port 25500 closed or unreachable)");
+            } catch (javax.net.ssl.SSLHandshakeException e) {
+                E36mcMod.LOGGER.error("[e36mc] TLS Handshake failed: {}", e.getMessage());
+                LanEventHandler.displayConnectionError("TLS Error (Check server certificate/domain)");
             } catch (Exception e) {
-                E36mcMod.LOGGER.error("[e36mc] Connection error: {}", e.getMessage());
+                E36mcMod.LOGGER.error("[e36mc] Connection error ({}): {}", e.getClass().getSimpleName(), e.getMessage());
+                LanEventHandler.displayConnectionError(e.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }
 
@@ -198,6 +206,7 @@ public class TunnelClient {
             // 1. Open new TLS connection to relay (data channel)
             SSLSocketFactory factory = createSSLSocketFactory();
             dataSocket = (SSLSocket) factory.createSocket(relayHost, relayPort);
+            configureSocket(dataSocket);
             dataSocket.startHandshake();
 
             // 2. Send CONN_READY
@@ -307,8 +316,10 @@ public class TunnelClient {
 
     /**
      * Create an SSLSocketFactory, optionally trusting all certs for development.
+     * Also configures SNI for the socket if possible.
      */
     private SSLSocketFactory createSSLSocketFactory() throws Exception {
+        SSLSocketFactory factory;
         if (trustAllCerts) {
             // WARNING: Only for development! Trusts all certificates.
             SSLContext ctx = SSLContext.getInstance("TLS");
@@ -319,10 +330,22 @@ public class TunnelClient {
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {}
                 }
             }, new java.security.SecureRandom());
-            return ctx.getSocketFactory();
+            factory = ctx.getSocketFactory();
         } else {
             // Use default trust store (includes Let's Encrypt)
-            return (SSLSocketFactory) SSLSocketFactory.getDefault();
+            factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        }
+        return factory;
+    }
+
+    private void configureSocket(SSLSocket socket) {
+        try {
+            // Enable SNI
+            SSLParameters params = socket.getSSLParameters();
+            params.setServerNames(java.util.Collections.singletonList(new SNIHostName(relayHost)));
+            socket.setSSLParameters(params);
+        } catch (Exception e) {
+            E36mcMod.LOGGER.warn("[e36mc] Failed to set SNI: {}", e.getMessage());
         }
     }
 

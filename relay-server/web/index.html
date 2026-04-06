@@ -233,6 +233,15 @@
             letter-spacing: 0.01em;
             border: 1px solid hsla(var(--primary), 0.2);
         }
+
+        .badge.guest {
+            background: hsla(var(--warning), 0.1);
+            color: hsl(var(--warning));
+            border-color: hsla(var(--warning), 0.3);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            text-transform: uppercase;
+        }
         
         .status-dot {
             width: 10px;
@@ -450,6 +459,37 @@
             color: hsla(var(--text), 0.6);
         }
 
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            background: hsla(var(--surface-hover), 0.5);
+            padding: 4px;
+            border-radius: 14px;
+            gap: 4px;
+            border: 1px solid hsla(var(--text), 0.05);
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1.25rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: hsl(var(--text-muted));
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-tab:hover {
+            color: hsl(var(--text));
+            background: hsla(var(--text), 0.05);
+        }
+
+        .filter-tab.active {
+            background: hsl(var(--primary));
+            color: white;
+            box-shadow: 0 4px 12px hsla(var(--primary), 0.3);
+        }
+
         /* Toast notifications */
         #toast {
             position: fixed;
@@ -543,7 +583,14 @@
 
         <div class="card">
             <div class="flex-between">
-                <h2 style="margin:0;">User Connections</h2>
+                <div style="display: flex; align-items: center; gap: 2rem;">
+                    <h2 style="margin:0;">User Connections</h2>
+                    <div class="filter-tabs">
+                        <div class="filter-tab active" onclick="setFilter('all', this)">All</div>
+                        <div class="filter-tab" onclick="setFilter('registered', this)">Registered</div>
+                        <div class="filter-tab" onclick="setFilter('guests', this)">Guests</div>
+                    </div>
+                </div>
                 <button onclick="showAddModal()">+ Add User</button>
             </div>
             
@@ -590,6 +637,8 @@
     <script>
         let token = localStorage.getItem('e36mc_admin_token') || '';
         let fetchInterval = null;
+        let currentFilter = 'all'; // all, registered, guests
+        let cachedUsers = [];
 
         if (token) {
             document.getElementById('login-overlay').classList.remove('active');
@@ -657,6 +706,7 @@
                     return;
                 }
                 const users = await res.json();
+                cachedUsers = users;
                 
                 if (users && users.length) {
                     users.sort((a, b) => a.user_id.localeCompare(b.user_id));
@@ -665,7 +715,7 @@
                     document.getElementById('stat-active-users').innerText = '0';
                 }
                 
-                renderUsers(users);
+                renderUsers();
             } catch (e) {
                 console.error("Failed to fetch users", e);
             }
@@ -717,8 +767,23 @@
             }
         }
 
-        function renderUsers(users) {
+        function setFilter(filter, el) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderUsers();
+        }
+
+        function renderUsers() {
             const tbody = document.getElementById('users-body');
+            let users = cachedUsers;
+
+            // Apply filter
+            if (currentFilter === 'registered') {
+                users = users.filter(u => !u.is_guest);
+            } else if (currentFilter === 'guests') {
+                users = users.filter(u => u.is_guest);
+            }
             
             if (!users || users.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:hsl(var(--text-muted)); padding: 3rem;">No users configured yet. Click "Add User" to get started.</td></tr>`;
@@ -754,7 +819,10 @@
                         <div style="display:flex; align-items:center; gap:1rem;">
                             <div title="${statusText}">${statusDot}</div>
                             <div>
-                                <strong style="font-size: 1.1rem; letter-spacing: -0.01em;">${u.user_id}</strong>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <strong style="font-size: 1.1rem; letter-spacing: -0.01em;">${u.user_id}</strong>
+                                    ${u.is_guest ? '<span class="badge guest">Guest</span>' : ''}
+                                </div>
                                 ${uptimeStr}
                             </div>
                         </div>
