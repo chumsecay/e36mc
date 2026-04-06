@@ -4,27 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>e36mc Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --danger: #ef4444;
-            --success: #10b981;
-            --border: #334155;
-            --warning: #f59e0b;
+            /* HSL Design System */
+            --bg: 222 47% 7%;
+            --surface: 217 33% 12%;
+            --surface-hover: 217 33% 18%;
+            --primary: 217 91% 60%;
+            --primary-glow: 217 91% 60% / 0.5;
+            --accent: 263 70% 50%;
+            --text: 210 40% 98%;
+            --text-muted: 215 20% 65%;
+            --danger: 0 84% 60%;
+            --success: 142 71% 45%;
+            --warning: 38 92% 50%;
+            --border: 217 33% 20%;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 40%);
+            font-family: 'Outfit', sans-serif;
+            background-color: hsl(var(--bg));
+            background-image: 
+                radial-gradient(circle at 0% 0%, hsla(var(--primary), 0.15), transparent 35%),
+                radial-gradient(circle at 100% 100%, hsla(var(--accent), 0.1), transparent 35%);
             background-attachment: fixed;
-            color: var(--text);
+            color: hsl(var(--text));
             margin: 0;
             padding: 0;
             display: flex;
@@ -35,8 +49,7 @@
         .container {
             width: 100%;
             max-width: 1100px;
-            padding: 2rem;
-            box-sizing: border-box;
+            padding: 2.5rem;
         }
 
         header {
@@ -44,184 +57,242 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid hsla(var(--border), 0.5);
         }
 
         .header-title {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .header-logo {
-            height: 48px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            height: 56px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.5);
+            transition: var(--transition);
+        }
+        
+        .header-logo:hover {
+            transform: scale(1.05) rotate(-5deg);
         }
 
         h1 {
             margin: 0;
-            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            font-size: 2rem;
+            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.02em;
         }
 
         .card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            background: hsla(var(--surface), 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid hsla(var(--text), 0.08);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            border-color: hsla(var(--text), 0.15);
         }
 
         .flex-between {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         button {
-            background: linear-gradient(to right, var(--primary), #6366f1);
+            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
             color: white;
             border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+            transition: var(--transition);
+            box-shadow: 0 4px 12px hsla(var(--primary), 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
         }
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 20px hsla(var(--primary), 0.4);
+            filter: brightness(1.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
         }
 
         button.danger {
-            background: transparent;
-            color: var(--danger);
-            border: 1px solid var(--danger);
+            background: hsla(var(--danger), 0.15);
+            color: hsl(var(--danger));
+            border: 1px solid hsla(var(--danger), 0.3);
             box-shadow: none;
         }
 
         button.danger:hover {
-            background: var(--danger);
+            background: hsl(var(--danger));
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            border-color: transparent;
+            box-shadow: 0 8px 16px hsla(var(--danger), 0.4);
         }
         
         button.edit {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
+            background: hsla(var(--primary), 0.1);
+            color: hsl(var(--primary));
             box-shadow: none;
-            margin-right: 0.5rem;
+            border: 1px solid hsla(var(--primary), 0.2);
         }
         
         button.edit:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: hsla(var(--primary), 0.2);
+            border-color: hsl(var(--primary));
+            box-shadow: 0 8px 16px hsla(var(--primary), 0.2);
+        }
+        
+        .copy-btn {
+            background: hsla(var(--primary), 0.1);
+            border: 1px solid hsla(var(--primary), 0.2);
+            color: hsl(var(--primary));
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .copy-btn:hover {
+            background: hsl(var(--primary));
+            color: white;
+            border-color: transparent;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px hsla(var(--primary), 0.3);
         }
 
         table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 0.5rem;
-            margin-top: 1rem;
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
+            border-spacing: 0 0.75rem;
+            margin-top: 0.5rem;
         }
 
         th {
-            color: var(--text-muted);
+            color: hsl(var(--text-muted));
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.1em;
-            border-bottom: 1px solid var(--border);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            padding: 0.75rem 1.5rem;
+            text-align: left;
         }
         
         tbody tr {
-            background: rgba(15, 23, 42, 0.4);
-            transition: all 0.2s;
+            background: hsla(var(--text), 0.03);
+            transition: var(--transition);
         }
         
         tbody tr:hover {
-            background: rgba(30, 41, 59, 0.8);
-            transform: scale(1.01);
+            background: hsla(var(--text), 0.06);
+            transform: scale(1.005);
         }
         
-        tbody td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-        tbody td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        td {
+            padding: 1.25rem 1.5rem;
+        }
+
+        tbody td:first-child { border-top-left-radius: 16px; border-bottom-left-radius: 16px; }
+        tbody td:last-child { border-top-right-radius: 16px; border-bottom-right-radius: 16px; }
 
         .badge {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            padding: 0.3rem 0.6rem;
-            border-radius: 9999px;
+            background: hsla(var(--primary), 0.15);
+            color: hsl(var(--primary));
+            padding: 0.4rem 0.8rem;
+            border-radius: 10px;
             font-size: 0.85rem;
             font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
+            letter-spacing: 0.01em;
+            border: 1px solid hsla(var(--primary), 0.2);
         }
         
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             display: inline-block;
+            position: relative;
         }
         
         .status-dot.online {
-            background-color: var(--success);
-            box-shadow: 0 0 8px var(--success);
+            background-color: hsl(var(--success));
+            box-shadow: 0 0 12px hsla(var(--success), 0.6);
+        }
+        
+        .status-dot.online::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: hsla(var(--success), 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
         }
         
         .status-dot.offline {
-            background-color: var(--text-muted);
+            background-color: hsl(var(--text-muted));
+            opacity: 0.5;
         }
 
         .speed-stat {
             font-family: monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             display: flex;
             flex-direction: column;
-            gap: 0.2rem;
+            gap: 0.3rem;
         }
         
-        .speed-val {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-        
-        .speed-val i { font-style: normal; font-size: 0.8rem; }
-        .down { color: #10b981; }
-        .up { color: #3b82f6; }
+        .speed-val { color: hsl(var(--text)); }
+        .down { color: hsl(var(--success)); }
+        .up { color: hsl(var(--primary)); }
 
         /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: hsla(var(--bg), 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s;
-            backdrop-filter: blur(8px);
-            z-index: 50;
+            transition: var(--transition);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 100;
         }
 
         .modal-overlay.active {
@@ -230,115 +301,177 @@
         }
 
         .modal {
-            background: var(--surface);
-            border-radius: 16px;
-            padding: 2rem;
+            background: hsl(var(--surface));
+            border-radius: 28px;
+            padding: 2.5rem;
             width: 100%;
-            max-width: 420px;
-            transform: translateY(20px);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            max-width: 440px;
+            transform: scale(0.9) translateY(20px);
+            transition: var(--transition);
+            border: 1px solid hsla(var(--text), 0.1);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
         }
 
         .modal-overlay.active .modal {
-            transform: translateY(0);
+            transform: scale(1) translateY(0);
         }
 
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            margin-bottom: 0.6rem;
+            color: hsl(var(--text-muted));
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .form-group input {
             width: 100%;
-            padding: 0.8rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: rgba(15, 23, 42, 0.5);
-            color: var(--text);
+            padding: 0.9rem 1.1rem;
+            border-radius: 12px;
+            border: 1px solid hsla(var(--text), 0.1);
+            background: hsla(var(--bg), 0.5);
+            color: hsl(var(--text));
             box-sizing: border-box;
             font-family: inherit;
-            transition: border-color 0.2s;
+            transition: var(--transition);
+            font-size: 1rem;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-        
-        .form-group input:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background: rgba(0,0,0,0.2);
-        }
-
-        #login-overlay {
-            z-index: 100;
-            background: var(--bg);
+            border-color: hsl(var(--primary));
+            box-shadow: 0 0 0 4px hsla(var(--primary), 0.15);
+            background: hsla(var(--bg), 0.8);
         }
 
         /* Toggle Switches */
         .switches {
             display: flex;
-            gap: 1.5rem;
-            margin-right: 1.5rem;
+            gap: 2rem;
+            margin-right: 2rem;
             align-items: center;
         }
 
         .toggle-label {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             font-size: 0.9rem;
-            color: var(--text-muted);
+            font-weight: 600;
+            color: hsl(var(--text-muted));
             cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .toggle-label:hover {
+            color: hsl(var(--text));
         }
 
-        .switch-input {
-            display: none;
-        }
+        .switch-input { display: none; }
 
         .switch-bg {
-            width: 44px;
-            height: 24px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
+            width: 48px;
+            height: 26px;
+            background: hsla(var(--text), 0.1);
+            border-radius: 13px;
             position: relative;
-            transition: all 0.3s;
+            transition: var(--transition);
+            border: 1px solid hsla(var(--text), 0.05);
         }
 
         .switch-bg::after {
             content: '';
             position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
             background: white;
             border-radius: 50%;
-            transition: all 0.3s;
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .switch-input:checked + .switch-bg {
-            background: var(--success);
+            background: hsl(var(--success));
+            border-color: hsla(var(--success), 0.2);
         }
 
         .switch-input:checked + .switch-bg.maintenance {
-            background: var(--danger);
+            background: hsl(var(--danger));
+            border-color: hsla(var(--danger), 0.2);
         }
 
         .switch-input:checked + .switch-bg::after {
-            transform: translateX(20px);
+            transform: translateX(22px);
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: hsla(var(--surface), 0.4);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 1px solid hsla(var(--text), 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .stat-label {
+            color: hsl(var(--text-muted));
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: hsl(var(--text));
+        }
+        
+        .stat-detail {
+            font-size: 0.85rem;
+            color: hsla(var(--text), 0.6);
+        }
+
+        /* Toast notifications */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: hsl(var(--surface));
+            color: white;
+            padding: 0.75rem 1.75rem;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            z-index: 1000;
+            transition: var(--transition);
+            border: 1px solid hsla(var(--text), 0.1);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        #toast.active {
+            transform: translateX(-50%) translateY(0);
         }
     </style>
+
 </head>
 <body>
 
@@ -359,32 +492,54 @@
         </div>
     </div>
 
+    <!-- Toast notification -->
+    <div id="toast">Copied to clipboard!</div>
+
     <div class="container">
         <header>
             <div class="header-title">
                 <img src="logo.gif" alt="e36mc logo" class="header-logo">
                 <div>
                     <h1>e36mc Dashboard</h1>
-                    <div id="live-clock" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">--:--:--</div>
+                    <div id="live-clock" style="color: hsl(var(--text-muted)); font-size: 0.85rem; font-weight: 500; margin-top: 0.2rem;">--:--:--</div>
                 </div>
             </div>
             
             <div style="display:flex; align-items:center;">
                 <div class="switches">
                     <label class="toggle-label" title="Allow unwhitelisted players to get random domains">
+                        <i data-lucide="globe" style="width: 18px; height: 18px;"></i> Public Mode
                         <input type="checkbox" id="public-mode-toggle" class="switch-input" onchange="toggleConfig('public')">
                         <div class="switch-bg"></div>
-                        🌍 Public Mode
                     </label>
                     <label class="toggle-label" title="Block EVERYONE from connecting">
+                        <i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i> Maintenance
                         <input type="checkbox" id="maintenance-mode-toggle" class="switch-input" onchange="toggleConfig('maintenance')">
                         <div class="switch-bg maintenance"></div>
-                        🛠️ Maintenance
                     </label>
                 </div>
                 <button class="danger" onclick="logout()">Logout</button>
             </div>
         </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Relay Domain</div>
+                <div class="stat-value" id="stat-domain">mc.sigmaskibidi.click</div>
+                <div class="stat-detail">Public Minecraft Address</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Connections</div>
+                <div class="stat-value" id="stat-active-users">0</div>
+                <div class="stat-detail">Users currently connected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Control Port</div>
+                <div class="stat-value">25500</div>
+                <div class="stat-detail">TLS encrypted tunnel port</div>
+            </div>
+        </div>
+
 
         <div class="card">
             <div class="flex-between">
@@ -443,6 +598,7 @@
 
         function login() {
             token = document.getElementById('admin-token').value.trim();
+            if (!token) return;
             localStorage.setItem('e36mc_admin_token', token);
             document.getElementById('login-overlay').classList.remove('active');
             startPolling();
@@ -452,6 +608,21 @@
             if(fetchInterval) clearInterval(fetchInterval);
             localStorage.removeItem('e36mc_admin_token');
             location.reload();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add('active');
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        function copyToClipboard(text, label) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`Copied ${label} to clipboard!`);
+            });
         }
 
         function startPolling() {
@@ -464,6 +635,8 @@
                 const now = new Date();
                 document.getElementById('live-clock').innerText = now.toLocaleString();
             }, 1000);
+
+            lucide.createIcons();
         }
         
         function formatSpeed(bytesPerSec) {
@@ -480,15 +653,16 @@
                 });
                 if (res.status === 401) {
                     clearInterval(fetchInterval);
-                    alert('Invalid token');
                     logout();
                     return;
                 }
                 const users = await res.json();
                 
-                // Sort users alphabetically by user_id to prevent rows jumping
                 if (users && users.length) {
                     users.sort((a, b) => a.user_id.localeCompare(b.user_id));
+                    document.getElementById('stat-active-users').innerText = users.filter(u => u.is_online).length;
+                } else {
+                    document.getElementById('stat-active-users').innerText = '0';
                 }
                 
                 renderUsers(users);
@@ -512,6 +686,9 @@
                     }
                     if (document.activeElement !== mainToggle) {
                         mainToggle.checked = cfg.maintenance_mode;
+                    }
+                    if (cfg.domain) {
+                        document.getElementById('stat-domain').innerText = cfg.domain;
                     }
                 }
             } catch (e) {
@@ -544,12 +721,13 @@
             const tbody = document.getElementById('users-body');
             
             if (!users || users.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No users found</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:hsl(var(--text-muted)); padding: 3rem;">No users configured yet. Click "Add User" to get started.</td></tr>`;
                 return;
             }
 
             let html = '';
             const now = new Date();
+            const domain = document.getElementById('stat-domain').innerText;
             
             users.forEach(u => {
                 const isOnline = u.is_online;
@@ -558,6 +736,7 @@
                 
                 const statusDot = `<span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>`;
                 const statusText = isOnline ? 'Online' : 'Offline';
+                const fullAddress = `${u.subdomain}.${domain}`;
                 
                 let uptimeStr = '';
                 if (isOnline && u.connected_at) {
@@ -566,34 +745,36 @@
                     if (diffMs > 0) {
                         const mins = Math.floor(diffMs / 60000);
                         const secs = Math.floor((diffMs % 60000) / 1000);
-                        uptimeStr = `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Uptime: ${mins}m ${secs}s</div>`;
+                        uptimeStr = `<div style="font-size: 0.75rem; color: hsla(var(--text), 0.5); margin-top: 2px;">Active for ${mins}m ${secs}s</div>`;
                     }
-                }
-                
-                let createdStr = 'Unknown';
-                if (u.created_at && !u.created_at.startsWith("0001-01-01")) {
-                    createdStr = new Date(u.created_at).toLocaleString();
                 }
                 
                 html += `<tr>
                     <td>
-                        <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <div style="display:flex; align-items:center; gap:1rem;">
                             <div title="${statusText}">${statusDot}</div>
                             <div>
-                                <strong title="Created: ${createdStr}" style="cursor:help;">${u.user_id}</strong>
+                                <strong style="font-size: 1.1rem; letter-spacing: -0.01em;">${u.user_id}</strong>
                                 ${uptimeStr}
                             </div>
                         </div>
                     </td>
-                    <td><span class="badge">${u.subdomain}</span></td>
                     <td>
-                        <div class="speed-stat">
-                            <span class="speed-val down" title="Downstream to player"><i>↓</i> ${downSpeed}</span>
-                            <span class="speed-val up" title="Upstream from player"><i>↑</i> ${upSpeed}</span>
+                        <div style="display:flex; align-items:center; justify-content: space-between; gap: 1rem; max-width: 200px;">
+                            <span class="badge" style="flex: 1; text-align: center;">${u.subdomain}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${fullAddress}', 'address')" title="Copy address">
+                                <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy
+                            </button>
                         </div>
                     </td>
                     <td>
-                        <div>
+                        <div class="speed-stat">
+                            <span class="speed-val down"><i data-lucide="arrow-down" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i> ${downSpeed}</span>
+                            <span class="speed-val up"><i data-lucide="arrow-up" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i> ${upSpeed}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.5rem;">
                             <button class="edit" onclick="showEditModal('${u.user_id}', '${u.subdomain}', '${u.token}')">Edit</button>
                             <button class="danger" onclick="deleteUser('${u.user_id}')">Delete</button>
                         </div>
@@ -601,10 +782,11 @@
                 </tr>`;
             });
             tbody.innerHTML = html;
+            lucide.createIcons();
         }
 
         function showAddModal() {
-            document.getElementById('modal-title').innerText = 'Add User';
+            document.getElementById('modal-title').innerText = 'Add New User';
             document.getElementById('edit-mode').value = 'false';
             document.getElementById('input-userid').value = '';
             document.getElementById('input-userid').disabled = false;
@@ -614,7 +796,7 @@
         }
         
         function showEditModal(userId, subdomain, tokenStr) {
-            document.getElementById('modal-title').innerText = 'Edit User';
+            document.getElementById('modal-title').innerText = 'Edit User Settings';
             document.getElementById('edit-mode').value = 'true';
             document.getElementById('input-userid').value = userId;
             document.getElementById('input-userid').disabled = true;
@@ -630,45 +812,63 @@
         async function saveUser() {
             const isEdit = document.getElementById('edit-mode').value === 'true';
             const user = {
-                user_id: document.getElementById('input-userid').value,
-                subdomain: document.getElementById('input-subdomain').value,
-                token: document.getElementById('input-token').value
+                user_id: document.getElementById('input-userid').value.trim(),
+                subdomain: document.getElementById('input-subdomain').value.trim().toLowerCase(),
+                token: document.getElementById('input-token').value.trim()
             };
+
+            if (!user.user_id || !user.subdomain || !user.token) {
+                alert('Please fill in all fields');
+                return;
+            }
 
             const endpoint = isEdit ? '/api/users/edit' : '/api/users/add';
             const method = isEdit ? 'PUT' : 'POST';
 
-            const res = await fetch(endpoint, {
-                method: method,
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(user)
-            });
+            try {
+                const res = await fetch(endpoint, {
+                    method: method,
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(user)
+                });
 
-            if (res.ok) {
-                hideAddModal();
-                fetchUsers();
-            } else {
-                alert('Failed to save user: ' + await res.text());
+                if (res.ok) {
+                    hideAddModal();
+                    fetchUsers();
+                    showToast(isEdit ? 'User updated successfully' : 'User added successfully');
+                } else {
+                    alert('Failed to save user: ' + await res.text());
+                }
+            } catch (e) {
+                alert('Connection error');
             }
         }
 
         async function deleteUser(userId) {
-            if (!confirm(`Are you sure you want to delete ${userId}?`)) return;
+            if (!confirm(`Are you sure you want to remove ${userId}? This will terminate their connection.`)) return;
 
-            const res = await fetch(`/api/users/delete?id=${userId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            try {
+                const res = await fetch(`/api/users/delete?id=${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-            if (res.ok) {
-                fetchUsers();
-            } else {
-                alert('Failed to delete user');
+                if (res.ok) {
+                    fetchUsers();
+                    showToast('User removed');
+                } else {
+                    alert('Failed to delete user');
+                }
+            } catch (e) {
+                alert('Connection error');
             }
         }
+
+        // Initialize icons
+        lucide.createIcons();
     </script>
 </body>
 </html>
