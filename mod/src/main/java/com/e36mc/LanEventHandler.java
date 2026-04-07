@@ -40,12 +40,11 @@ public class LanEventHandler {
         client.execute(() -> {
             if (client.player == null) return;
 
+            // Robust ClickEvent creation using reflection to handle Record vs Class mismatch
+            ClickEvent domainClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain);
+            ClickEvent tokenClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
+
             client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
-            
-            // Revert to standard constructor since we are building for 1.21.1 correctly now.
-            // Add HoverEvent for better user feedback.
-            ClickEvent domainClick = new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain);
-            ClickEvent tokenClick = new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
 
             // Mask the token for visual display (e.g. e36mc-1a2b... -> e36mc-••••••••)
             String maskedToken = "Unknown";
@@ -101,7 +100,7 @@ public class LanEventHandler {
             }
 
             // Revert to standard constructor and add Hover
-            ClickEvent tokenClick = new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
+            ClickEvent tokenClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
 
             MutableText tokenText = Text.literal("§eGửi Token này cho Admin để được cấp quyền: ")
                 .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
@@ -124,5 +123,27 @@ public class LanEventHandler {
      */
     public static void displayReconnecting(int attempt) {
         sendChatMessage("§e[e36mc] Đang kết nối lại... (Lần " + attempt + ")");
+    }
+
+    /**
+     * More robust helper to create ClickEvent via reflection to bypass Record/Class binary mismatch.
+     */
+    private static ClickEvent createClickEvent(ClickEvent.Action action, String value) {
+        try {
+            // Find any constructor that matches (ClickEvent.Action, String)
+            for (java.lang.reflect.Constructor<?> constructor : ClickEvent.class.getDeclaredConstructors()) {
+                Class<?>[] params = constructor.getParameterTypes();
+                if (params.length == 2 && 
+                    (params[0].isAssignableFrom(ClickEvent.Action.class) || ClickEvent.Action.class.isAssignableFrom(params[0])) && 
+                    params[1] == String.class) {
+                    
+                    constructor.setAccessible(true);
+                    return (ClickEvent) constructor.newInstance(action, value);
+                }
+            }
+        } catch (Exception e) {
+            E36mcMod.LOGGER.error("[e36mc] Critical failure creating ClickEvent via reflection: {}", e.getMessage());
+        }
+        return null;
     }
 }
