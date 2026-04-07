@@ -41,7 +41,6 @@ public class LanEventHandler {
         client.execute(() -> {
             if (client.player == null) return;
 
-            // SUPER REFLECTION for 1.21.1 Interfaces/Records
             ClickEvent domainClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain);
             ClickEvent tokenClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
 
@@ -125,74 +124,152 @@ public class LanEventHandler {
         sendChatMessage("§e[e36mc] Đang kết nối lại... (Lần " + attempt + ")");
     }
 
+    private static boolean debugLogged = false;
+
     /**
-     * Super Reflection to find and instantiate ClickEvent.
-     * In 1.21.1, ClickEvent is an interface, and the actual implementations are inner records.
+     * Logs full runtime structure of ClickEvent and HoverEvent once, for debugging.
+     */
+    private static void logClassStructure() {
+        if (debugLogged) return;
+        debugLogged = true;
+
+        E36mcMod.LOGGER.info("[e36mc] === ClickEvent runtime debug ===");
+        E36mcMod.LOGGER.info("[e36mc] ClickEvent class: {} | interface={} | abstract={}",
+            ClickEvent.class.getName(),
+            ClickEvent.class.isInterface(),
+            java.lang.reflect.Modifier.isAbstract(ClickEvent.class.getModifiers()));
+        for (Constructor<?> c : ClickEvent.class.getDeclaredConstructors()) {
+            E36mcMod.LOGGER.info("[e36mc]   constructor: {}", c);
+        }
+        for (Class<?> inner : ClickEvent.class.getDeclaredClasses()) {
+            E36mcMod.LOGGER.info("[e36mc]   inner: {} implements ClickEvent={}", inner.getName(), ClickEvent.class.isAssignableFrom(inner));
+            for (Constructor<?> c : inner.getDeclaredConstructors()) {
+                E36mcMod.LOGGER.info("[e36mc]     constructor: {}", c);
+            }
+        }
+
+        E36mcMod.LOGGER.info("[e36mc] === HoverEvent runtime debug ===");
+        E36mcMod.LOGGER.info("[e36mc] HoverEvent class: {} | interface={} | abstract={}",
+            HoverEvent.class.getName(),
+            HoverEvent.class.isInterface(),
+            java.lang.reflect.Modifier.isAbstract(HoverEvent.class.getModifiers()));
+        for (Constructor<?> c : HoverEvent.class.getDeclaredConstructors()) {
+            E36mcMod.LOGGER.info("[e36mc]   constructor: {}", c);
+        }
+        for (Class<?> inner : HoverEvent.class.getDeclaredClasses()) {
+            E36mcMod.LOGGER.info("[e36mc]   inner: {} implements HoverEvent={}", inner.getName(), HoverEvent.class.isAssignableFrom(inner));
+            for (Constructor<?> c : inner.getDeclaredConstructors()) {
+                E36mcMod.LOGGER.info("[e36mc]     constructor: {}", c);
+            }
+        }
+        E36mcMod.LOGGER.info("[e36mc] === end debug ===");
+    }
+
+    /**
+     * Creates a ClickEvent compatible across MC versions.
+     * Strategy: try direct constructor, then brute-force all inner classes.
      */
     private static ClickEvent createClickEvent(ClickEvent.Action action, String value) {
+        logClassStructure();
+
+        // Strategy 1: Direct constructor (1.21.1 where ClickEvent is a record/class)
         try {
-            // First, try the Action-based inner class (Standard 1.21.1 Yarn)
-            String actionName = action.name();
-            // Convert COPY_TO_CLIPBOARD -> CopyToClipboard
-            StringBuilder sb = new StringBuilder();
-            for (String part : actionName.split("_")) {
-                if (part.length() > 0) {
-                    sb.append(part.substring(0, 1).toUpperCase());
-                    sb.append(part.substring(1).toLowerCase());
-                }
-            }
-            String camelName = sb.toString();
+            Constructor<ClickEvent> ctor = ClickEvent.class.getDeclaredConstructor(ClickEvent.Action.class, String.class);
+            ctor.setAccessible(true);
+            return ctor.newInstance(action, value);
+        } catch (Throwable ignored) {}
 
-            // Scan inner classes
-            for (Class<?> inner : ClickEvent.class.getDeclaredClasses()) {
-                if (inner.getSimpleName().equals(camelName) || inner.getSimpleName().contains(camelName)) {
-                    for (Constructor<?> constructor : inner.getDeclaredConstructors()) {
-                        if (constructor.getParameterCount() == 1 && constructor.getParameterTypes()[0] == String.class) {
-                            constructor.setAccessible(true);
-                            // Some versions might need new ClickEvent(InnerRecord)
-                            Object recordInstance = constructor.newInstance(value);
-                            
-                            // Check if ClickEvent has a constructor taking this record
-                            for (Constructor<?> outerConstructor : ClickEvent.class.getDeclaredConstructors()) {
-                                if (outerConstructor.getParameterCount() == 1 && outerConstructor.getParameterTypes()[0].isAssignableFrom(inner)) {
-                                    outerConstructor.setAccessible(true);
-                                    return (ClickEvent) outerConstructor.newInstance(recordInstance);
-                                }
-                            }
-                            
-                            // If InnerRecord implements ClickEvent directly
-                            if (ClickEvent.class.isAssignableFrom(inner)) {
-                                return (ClickEvent) recordInstance;
-                            }
-                        }
+        // Strategy 2: Brute-force all inner classes that implement ClickEvent
+        // In 1.21.11+ ClickEvent may be an interface; inner records implement it.
+        // Runtime uses intermediary names so we can't match by name — try every inner class.
+        for (Class<?> inner : ClickEvent.class.getDeclaredClasses()) {
+            if (!ClickEvent.class.isAssignableFrom(inner)) continue;
+            for (Constructor<?> c : inner.getDeclaredConstructors()) {
+                try {
+                    c.setAccessible(true);
+                    Class<?>[] params = c.getParameterTypes();
+                    // Try (String) constructor
+                    if (params.length == 1 && params[0] == String.class) {
+                        ClickEvent result = (ClickEvent) c.newInstance(value);
+                        E36mcMod.LOGGER.info("[e36mc] Created ClickEvent via inner class {} (String)", inner.getName());
+                        return result;
                     }
-                }
+                } catch (Throwable ignored) {}
             }
-
-            // Fallback: Just return null rather than crashing if we can't find it
-            E36mcMod.LOGGER.warn("[e36mc] Could not find ClickEvent implementation for: {}", actionName);
-        } catch (Exception e) {
-            E36mcMod.LOGGER.error("[e36mc] Super Reflection ClickEvent failure: {}", e.getMessage());
         }
+
+        // Strategy 3: Try inner classes with (Action, String) constructor
+        for (Class<?> inner : ClickEvent.class.getDeclaredClasses()) {
+            if (!ClickEvent.class.isAssignableFrom(inner)) continue;
+            for (Constructor<?> c : inner.getDeclaredConstructors()) {
+                try {
+                    c.setAccessible(true);
+                    Class<?>[] params = c.getParameterTypes();
+                    if (params.length == 2 && params[1] == String.class) {
+                        ClickEvent result = (ClickEvent) c.newInstance(action, value);
+                        E36mcMod.LOGGER.info("[e36mc] Created ClickEvent via inner class {} (Action, String)", inner.getName());
+                        return result;
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        E36mcMod.LOGGER.error("[e36mc] FAILED to create ClickEvent for action: {}", action.name());
         return null;
     }
 
     /**
-     * Super Reflection to find and instantiate HoverEvent.
+     * Creates a HoverEvent compatible across MC versions.
      */
-    private static HoverEvent createHoverEvent(HoverEvent.Action<?> action, Object value) {
+    @SuppressWarnings("unchecked")
+    private static <T> HoverEvent createHoverEvent(HoverEvent.Action<T> action, T value) {
+        logClassStructure();
+
+        // Strategy 1: Direct constructor (Action, T)
         try {
-            // In 1.21.1, HoverEvent is often a record taking (Action, Object/Content)
-            for (Constructor<?> constructor : HoverEvent.class.getDeclaredConstructors()) {
-                Class<?>[] params = constructor.getParameterTypes();
-                if (params.length == 2 && params[0].isAssignableFrom(HoverEvent.Action.class)) {
-                    constructor.setAccessible(true);
-                    return (HoverEvent) constructor.newInstance(action, value);
+            for (Constructor<?> ctor : HoverEvent.class.getDeclaredConstructors()) {
+                Class<?>[] params = ctor.getParameterTypes();
+                if (params.length == 2 && params[0] == HoverEvent.Action.class) {
+                    ctor.setAccessible(true);
+                    return (HoverEvent) ctor.newInstance(action, value);
                 }
             }
-        } catch (Exception e) {
-            E36mcMod.LOGGER.error("[e36mc] Super Reflection HoverEvent failure: {}", e.getMessage());
+        } catch (Throwable ignored) {}
+
+        // Strategy 2: Brute-force inner classes implementing HoverEvent
+        for (Class<?> inner : HoverEvent.class.getDeclaredClasses()) {
+            if (!HoverEvent.class.isAssignableFrom(inner)) continue;
+            for (Constructor<?> c : inner.getDeclaredConstructors()) {
+                try {
+                    c.setAccessible(true);
+                    Class<?>[] params = c.getParameterTypes();
+                    // Try (Text) or (value type) constructor
+                    if (params.length == 1 && params[0].isAssignableFrom(value.getClass())) {
+                        HoverEvent result = (HoverEvent) c.newInstance(value);
+                        E36mcMod.LOGGER.info("[e36mc] Created HoverEvent via inner class {} (value)", inner.getName());
+                        return result;
+                    }
+                } catch (Throwable ignored) {}
+            }
         }
+
+        // Strategy 3: Inner classes with (Action, value) constructor
+        for (Class<?> inner : HoverEvent.class.getDeclaredClasses()) {
+            if (!HoverEvent.class.isAssignableFrom(inner)) continue;
+            for (Constructor<?> c : inner.getDeclaredConstructors()) {
+                try {
+                    c.setAccessible(true);
+                    Class<?>[] params = c.getParameterTypes();
+                    if (params.length == 2 && params[1].isAssignableFrom(value.getClass())) {
+                        HoverEvent result = (HoverEvent) c.newInstance(action, value);
+                        E36mcMod.LOGGER.info("[e36mc] Created HoverEvent via inner class {} (Action, value)", inner.getName());
+                        return result;
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        E36mcMod.LOGGER.error("[e36mc] FAILED to create HoverEvent");
         return null;
     }
 }

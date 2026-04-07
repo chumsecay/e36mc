@@ -1,13 +1,11 @@
 ---- Minecraft Crash Report ----
-// Surprise! Haha. Well, this is awkward.
+// Daisy, daisy...
 
-Time: 2026-04-06 20:34:58
+Time: 2026-04-07 15:56:42
 Description: Unexpected error
 
 java.lang.InstantiationError: net.minecraft.class_2558
-	at knot//com.e36mc.LanEventHandler.lambda$displayTunnelAddress$1(LanEventHandler.java:47)
-	at knot//net.minecraft.class_5250.method_27694(class_5250.java:63)
-	at knot//com.e36mc.LanEventHandler.lambda$displayTunnelAddress$3(LanEventHandler.java:47)
+	at knot//com.e36mc.LanEventHandler.lambda$displayTunnelAddress$3(LanEventHandler.java:42)
 	at knot//net.minecraft.class_1255.method_18859(class_1255.java:169)
 	at knot//net.minecraft.class_4093.method_18859(class_4093.java:23)
 	at knot//net.minecraft.class_1255.method_16075(class_1255.java:143)
@@ -26,19 +24,17 @@ A detailed walkthrough of the error, its code path and all known details is as f
 -- Head --
 Thread: Render thread
 Stacktrace:
-	at knot//com.e36mc.LanEventHandler.lambda$displayTunnelAddress$1(LanEventHandler.java:47)
-	at knot//net.minecraft.class_5250.method_27694(class_5250.java:63)
-	at knot//com.e36mc.LanEventHandler.lambda$displayTunnelAddress$3(LanEventHandler.java:47)
+	at knot//com.e36mc.LanEventHandler.lambda$displayTunnelAddress$3(LanEventHandler.java:42)
 	at knot//net.minecraft.class_1255.method_18859(class_1255.java:169)
 	at knot//net.minecraft.class_4093.method_18859(class_4093.java:23)
 	at knot//net.minecraft.class_1255.method_16075(class_1255.java:143)
 
 -- Uptime --
 Details:
-	JVM uptime: 35.201s
-	Wall uptime: 25.420s
-	High-res time: 23.405s
-	Client ticks: 363 ticks / 18.150s
+	JVM uptime: 59.745s
+	Wall uptime: 44.348s
+	High-res time: 41.222s
+	Client ticks: 664 ticks / 33.200s
 Stacktrace:
 	at knot//net.minecraft.class_310.method_1587(class_310.java:2477)
 	at knot//net.minecraft.class_310.method_54580(class_310.java:1035)
@@ -50,14 +46,14 @@ Stacktrace:
 
 -- Affected level --
 Details:
-	All players: 1 total; class_746{name=alo_vu_a, id=48, pos=(28.31308296040781, 80.0, -166.3760852097691), mode=CREATIVE, permission=permission level: OWNERS}
+	All players: 1 total; class_746{name=alo_vu_a, id=87, pos=(77.93994673523459, 71.0, -305.2779417985227), mode=CREATIVE, permission=permission level: OWNERS}
 	Chunk stats: 961, 637
 	Level dimension: minecraft:overworld
 	Level spawn location: World: (0,67,0), Section: (at 0,3,0 in 0,4,0; chunk contains blocks 0,-64,0 to 15,319,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,-64,0 to 511,319,511)
-	Level time: 30477 game time, 30477 day time
+	Level time: 58572 game time, 58572 day time
 	Server brand: fabric
 	Server type: Integrated singleplayer server
-	Tracked entity count: 137
+	Tracked entity count: 157
 
 -- Last reload --
 Details:
@@ -73,7 +69,7 @@ Details:
 	Operating System: Windows 10 (amd64) version 10.0
 	Java Version: 21.0.7, Microsoft
 	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode), Microsoft
-	Memory: 266513488 bytes (254 MiB) / 939524096 bytes (896 MiB) up to 11005853696 bytes (10496 MiB)
+	Memory: 299975816 bytes (286 MiB) / 973078528 bytes (928 MiB) up to 11005853696 bytes (10496 MiB)
 	CPUs: 12
 	Processor Vendor: AuthenticAMD
 	Processor Name: AMD Ryzen 5 7530U with Radeon Graphics         
@@ -94,15 +90,15 @@ Details:
 	Memory slot #1 capacity (MiB): 8192.00
 	Memory slot #1 clockSpeed (GHz): 3.20
 	Memory slot #1 type: DDR4
-	Virtual memory max (MiB): 32718.62
-	Virtual memory used (MiB): 30989.50
-	Swap memory total (MiB): 16998.37
-	Swap memory used (MiB): 2342.17
-	Space in storage for jna.tmpdir (MiB): available: 427244.50, total: 955733.00
-	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 427244.50, total: 955733.00
-	Space in storage for io.netty.native.workdir (MiB): available: 427244.50, total: 955733.00
-	Space in storage for java.io.tmpdir (MiB): available: 427244.50, total: 955733.00
-	Space in storage for workdir (MiB): available: 427244.50, total: 955733.00
+	Virtual memory max (MiB): 33356.98
+	Virtual memory used (MiB): 30787.81
+	Swap memory total (MiB): 17636.73
+	Swap memory used (MiB): 2213.31
+	Space in storage for jna.tmpdir (MiB): available: 428526.09, total: 955733.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 428526.09, total: 955733.00
+	Space in storage for io.netty.native.workdir (MiB): available: 428526.09, total: 955733.00
+	Space in storage for java.io.tmpdir (MiB): available: 428526.09, total: 955733.00
+	Space in storage for workdir (MiB): available: 428526.09, total: 955733.00
 	JVM Flags: 9 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xss1M -Xmx10480M -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M
 	Debug Flags: 0 total; 
 	Fabric Mods: 
@@ -188,7 +184,7 @@ Details:
 	File encoding: UTF-8
 	CPU: 12x AMD Ryzen 5 7530U with Radeon Graphics 
 	Server Running: true
-	Player Count: 1 / 8; [class_3222['alo_vu_a'/48, l='ServerLevel[New World]', x=28.31, y=80.00, z=-166.38]]
+	Player Count: 1 / 8; [class_3222['alo_vu_a'/87, l='ServerLevel[New World]', x=77.94, y=71.00, z=-305.28]]
 	Active Data Packs: vanilla, fabric-convention-tags-v2
 	Available Data Packs: fabric-convention-tags-v2, minecart_improvements, redstone_experiments, trade_rebalance, vanilla
 	Enabled Feature Flags: minecraft:vanilla
