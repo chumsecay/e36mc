@@ -61,14 +61,14 @@ public class LanEventHandler {
                 .append(Text.literal("§b§n[Bấm vào đây để Copy]")
                 .styled(style -> style
                     .withClickEvent(domainClick)
-                    .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy địa chỉ")))));
+                    .withHoverEvent(createHoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy địa chỉ")))));
             client.player.sendMessage(domainText, false);
 
             MutableText tokenText = Text.literal("§eToken: §6" + maskedToken + " ")
                 .append(Text.literal("§c§n[Bấm vào đây để Copy]")
                 .styled(style -> style
                     .withClickEvent(tokenClick)
-                    .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§cNhấn để copy Token")))));
+                    .withHoverEvent(createHoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§cNhấn để copy Token")))));
             client.player.sendMessage(tokenText, false);
         });
     }
@@ -106,7 +106,7 @@ public class LanEventHandler {
                 .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
                 .styled(style -> style
                     .withClickEvent(tokenClick)
-                    .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy Token")))));
+                    .withHoverEvent(createHoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy Token")))));
             client.player.sendMessage(tokenText, false);
         });
     }
@@ -143,6 +143,27 @@ public class LanEventHandler {
             }
         } catch (Exception e) {
             E36mcMod.LOGGER.error("[e36mc] Critical failure creating ClickEvent via reflection: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Helper to create HoverEvent via reflection to bypass Record/Class binary mismatch.
+     */
+    private static net.minecraft.text.HoverEvent createHoverEvent(net.minecraft.text.HoverEvent.Action<?> action, Object value) {
+        try {
+            // Find constructor with (HoverEvent.Action, Object) signature
+            for (java.lang.reflect.Constructor<?> constructor : net.minecraft.text.HoverEvent.class.getDeclaredConstructors()) {
+                Class<?>[] params = constructor.getParameterTypes();
+                if (params.length == 2 && 
+                    (params[0].isAssignableFrom(net.minecraft.text.HoverEvent.Action.class) || net.minecraft.text.HoverEvent.Action.class.isAssignableFrom(params[0]))) {
+                    
+                    constructor.setAccessible(true);
+                    return (net.minecraft.text.HoverEvent) constructor.newInstance(action, value);
+                }
+            }
+        } catch (Exception e) {
+            E36mcMod.LOGGER.error("[e36mc] Critical failure creating HoverEvent via reflection: {}", e.getMessage());
         }
         return null;
     }
