@@ -42,19 +42,10 @@ public class LanEventHandler {
 
             client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
             
-            // Use reflection for ClickEvent to avoid InstantiationError on 1.21.1+ (where it is a Record)
-            ClickEvent domainClick = null;
-            ClickEvent tokenClick = null;
-            try {
-                var constructor = ClickEvent.class.getConstructor(ClickEvent.Action.class, String.class);
-                domainClick = constructor.newInstance(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain);
-                tokenClick = constructor.newInstance(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
-            } catch (Exception e) {
-                E36mcMod.LOGGER.error("[e36mc] Failed to create ClickEvent via reflection: {}", e.getMessage());
-            }
-
-            final ClickEvent finalDomainClick = domainClick;
-            final ClickEvent finalTokenClick = tokenClick;
+            // Revert to standard constructor since we are building for 1.21.1 correctly now.
+            // Add HoverEvent for better user feedback.
+            ClickEvent domainClick = new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain);
+            ClickEvent tokenClick = new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
 
             // Mask the token for visual display (e.g. e36mc-1a2b... -> e36mc-••••••••)
             String maskedToken = "Unknown";
@@ -69,12 +60,16 @@ public class LanEventHandler {
 
             MutableText domainText = Text.literal("§eĐịa chỉ: §f" + safeDomain + " ")
                 .append(Text.literal("§b§n[Bấm vào đây để Copy]")
-                .styled(style -> finalDomainClick != null ? style.withClickEvent(finalDomainClick) : style));
+                .styled(style -> style
+                    .withClickEvent(domainClick)
+                    .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy địa chỉ")))));
             client.player.sendMessage(domainText, false);
 
             MutableText tokenText = Text.literal("§eToken: §6" + maskedToken + " ")
                 .append(Text.literal("§c§n[Bấm vào đây để Copy]")
-                .styled(style -> finalTokenClick != null ? style.withClickEvent(finalTokenClick) : style));
+                .styled(style -> style
+                    .withClickEvent(tokenClick)
+                    .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§cNhấn để copy Token")))));
             client.player.sendMessage(tokenText, false);
         });
     }
@@ -105,19 +100,14 @@ public class LanEventHandler {
                 client.player.sendMessage(Text.literal("§c§l[e36mc] §r§cKết nối thất bại. Máy chủ đang là Khép Kín (Private)."), false);
             }
 
-            ClickEvent tokenClick = null;
-            try {
-                var constructor = ClickEvent.class.getConstructor(ClickEvent.Action.class, String.class);
-                tokenClick = constructor.newInstance(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
-            } catch (Exception e) {
-                E36mcMod.LOGGER.error("[e36mc] Failed to create ClickEvent via reflection: {}", e.getMessage());
-            }
-
-            final ClickEvent finalTokenClick = tokenClick;
+            // Revert to standard constructor and add Hover
+            ClickEvent tokenClick = new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
 
             MutableText tokenText = Text.literal("§eGửi Token này cho Admin để được cấp quyền: ")
                 .append(Text.literal("§b§n[Bấm vào đây để Copy Token]")
-                .styled(style -> finalTokenClick != null ? style.withClickEvent(finalTokenClick) : style));
+                .styled(style -> style
+                    .withClickEvent(tokenClick)
+                    .withHoverEvent(new net.minecraft.text.HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy Token")))));
             client.player.sendMessage(tokenText, false);
         });
     }
