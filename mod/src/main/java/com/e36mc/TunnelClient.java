@@ -66,9 +66,17 @@ public class TunnelClient {
      * Stop the tunnel and clean up all connections.
      */
     public void stop() {
+        stop(false);
+    }
+
+    /**
+     * Stop the tunnel. If silent=true, don't display "Tunnel closed" message.
+     * Used when restarting the tunnel (close old → open new) to avoid confusing output.
+     */
+    public void stop(boolean silent) {
         if (!running.getAndSet(false)) return;
 
-        E36mcMod.LOGGER.info("[e36mc] Stopping tunnel client");
+        E36mcMod.LOGGER.info("[e36mc] Stopping tunnel client (silent={})", silent);
 
         // Shutdown heartbeat
         if (heartbeatExecutor != null) {
@@ -81,7 +89,9 @@ public class TunnelClient {
         // Shutdown all data channel threads
         executor.shutdownNow();
 
-        LanEventHandler.displayTunnelClosed("Tunnel stopped");
+        if (!silent) {
+            LanEventHandler.displayTunnelClosed("Tunnel stopped");
+        }
     }
 
     /**
@@ -121,7 +131,7 @@ public class TunnelClient {
                         assignedDomain = "unknown-domain";
                     }
                     E36mcMod.LOGGER.info("[e36mc] Auth OK! Domain: {}", assignedDomain);
-                    LanEventHandler.displayTunnelAddress(assignedDomain, token);
+                    LanEventHandler.displayTunnelAddress(assignedDomain);
 
                     // Start heartbeat
                     startHeartbeat();

@@ -29,11 +29,11 @@ public class LanEventHandler {
     }
 
     /**
-     * Displays the public tunnel address to the player.
+     * Displays the public tunnel address to the player (without token).
+     * Token is now retrieved via /e36mc token command.
      */
-    public static void displayTunnelAddress(String domain, String token) {
+    public static void displayTunnelAddress(String domain) {
         final String safeDomain = (domain != null) ? domain : "Unknown";
-        final String safeToken = (token != null) ? token : "Unknown";
 
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null) return;
@@ -42,11 +42,36 @@ public class LanEventHandler {
             if (client.player == null) return;
 
             ClickEvent domainClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeDomain);
-            ClickEvent tokenClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
 
             client.player.sendMessage(Text.literal("§a§l[e36mc] §r§aHầm Server Đã Mở!"), false);
-            
-            // Mask the token for visual display (e.g. e36mc-1a2b... -> e36mc-••••••••)
+
+            MutableText domainText = Text.literal("§eĐịa chỉ: §f" + safeDomain + " ")
+                .append(Text.literal("§b§n[Bấm vào đây để Copy]")
+                .styled(style -> style
+                    .withClickEvent(domainClick)
+                    .withHoverEvent(createHoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy địa chỉ")))));
+            client.player.sendMessage(domainText, false);
+
+            // Hint about /e36mc token
+            client.player.sendMessage(Text.literal("§7Gõ §f/e36mc token §7để lấy token kết nối."), false);
+        });
+    }
+
+    /**
+     * Displays the token with a copy button (called by /e36mc token command).
+     */
+    public static void displayToken(String token) {
+        final String safeToken = (token != null) ? token : "Unknown";
+
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null) return;
+
+        client.execute(() -> {
+            if (client.player == null) return;
+
+            ClickEvent tokenClick = createClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, safeToken);
+
+            // Mask the token for visual display
             String maskedToken = "Unknown";
             if (!"Unknown".equals(safeToken)) {
                 int dashIndex = safeToken.indexOf('-');
@@ -57,14 +82,9 @@ public class LanEventHandler {
                 }
             }
 
-            MutableText domainText = Text.literal("§eĐịa chỉ: §f" + safeDomain + " ")
-                .append(Text.literal("§b§n[Bấm vào đây để Copy]")
-                .styled(style -> style
-                    .withClickEvent(domainClick)
-                    .withHoverEvent(createHoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("§bNhấn để copy địa chỉ")))));
-            client.player.sendMessage(domainText, false);
+            client.player.sendMessage(Text.literal("§e§l[e36mc] §r§eToken của bạn:"), false);
 
-            MutableText tokenText = Text.literal("§eToken: §6" + maskedToken + " ")
+            MutableText tokenText = Text.literal("§6" + maskedToken + " ")
                 .append(Text.literal("§c§n[Bấm vào đây để Copy]")
                 .styled(style -> style
                     .withClickEvent(tokenClick)

@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import com.mojang.brigadier.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +46,32 @@ public class E36mcMod implements ClientModInitializer {
             stopTunnel();
         });
 
+        // Register /e36mc slash commands
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            dispatcher.register(ClientCommandManager.literal("e36mc")
+                .then(ClientCommandManager.literal("token")
+                    .executes(context -> {
+                        if (token != null && !token.isEmpty()) {
+                            LanEventHandler.displayToken(token);
+                        } else {
+                            LanEventHandler.sendChatMessage("§c[e36mc] Chưa có token. Hãy mở file config/e36mc.json");
+                        }
+                        return Command.SINGLE_SUCCESS;
+                    })
+                )
+                .then(ClientCommandManager.literal("status")
+                    .executes(context -> {
+                        if (activeTunnel != null) {
+                            LanEventHandler.sendChatMessage("§a[e36mc] Tunnel đang hoạt động.");
+                        } else {
+                            LanEventHandler.sendChatMessage("§e[e36mc] Không có tunnel nào đang chạy.");
+                        }
+                        return Command.SINGLE_SUCCESS;
+                    })
+                )
+            );
+        });
+
         LOGGER.info("[e36mc] e36mc initialized. Relay: {}:{}", relayHost, relayPort);
     }
 
@@ -60,8 +89,8 @@ public class E36mcMod implements ClientModInitializer {
 
 
 
-        // Stop any existing tunnel
-        stopTunnel();
+        // Stop any existing tunnel (silent = don't show "Tunnel closed" message)
+        stopTunnel(true);
 
         // Start new tunnel
         activeTunnel = new TunnelClient(lanPort, relayHost, relayPort, token, trustAllCerts);
@@ -72,9 +101,16 @@ public class E36mcMod implements ClientModInitializer {
      * Called when LAN server is stopped or client is shutting down.
      */
     public static void stopTunnel() {
+        stopTunnel(false);
+    }
+
+    /**
+     * Stop active tunnel. If silent=true, no chat message is shown.
+     */
+    public static void stopTunnel(boolean silent) {
         if (activeTunnel != null) {
-            LOGGER.info("[e36mc] Stopping tunnel");
-            activeTunnel.stop();
+            LOGGER.info("[e36mc] Stopping tunnel (silent={})", silent);
+            activeTunnel.stop(silent);
             activeTunnel = null;
         }
     }
