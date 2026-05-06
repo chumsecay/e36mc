@@ -1,14 +1,15 @@
 # Build artifacts
 mod/build/
 mod/.gradle/
-relay-server/e36mc-relay
-relay-server/e36mc-relay.exe
+relay-server/e36mc-relay*
+relay-server/*.tar.gz
 relay-server/go.sum
 
 # IDE files
 .idea/
 *.iml
 .vscode/
+.claude/
 
 # Config & sensitive files
 mod/run/
