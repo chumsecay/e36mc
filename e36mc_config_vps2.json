@@ -2,7 +2,7 @@
     "control_port": 25500,
     "public_port": 25565,
     "web_port": 8080,
-    "domain": "mc.sigmaskibidi.click",
+    "domain": "mc.sigmaskibidi.top",
     "cert_file": "cert.pem",
     "key_file": "key.pem",
     "users_file": "users.json",

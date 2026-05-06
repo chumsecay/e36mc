@@ -26,7 +26,7 @@ public class E36mcMod implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     // Config values
-    public static String relayHost = "mc.sigmaskibidi.click";
+    public static String relayHost = "mc.sigmaskibidi.top";
     public static int relayPort = 8443;
     public static String token = "";
     public static boolean trustAllCerts = true; // Set to true to allow self-signed certs
@@ -148,7 +148,7 @@ public class E36mcMod implements ClientModInitializer {
             if (config.has("relay_host") && !config.get("relay_host").isJsonNull()) {
                 relayHost = config.get("relay_host").getAsString();
             } else { 
-                config.addProperty("relay_host", "mc.sigmaskibidi.click"); 
+                config.addProperty("relay_host", "mc.sigmaskibidi.top"); 
                 saveNeeded = true; 
             }
 
