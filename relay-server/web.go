@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/subtle"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -16,13 +17,15 @@ var webFS embed.FS
 
 type WebServer struct {
 	cfg        *Config
+	configPath string
 	userStore  *UserStore
 	sessionMgr *SessionManager
 }
 
-func NewWebServer(cfg *Config, userStore *UserStore, sessionMgr *SessionManager) *WebServer {
+func NewWebServer(cfg *Config, configPath string, userStore *UserStore, sessionMgr *SessionManager) *WebServer {
 	return &WebServer{
 		cfg:        cfg,
+		configPath: configPath,
 		userStore:  userStore,
 		sessionMgr: sessionMgr,
 	}
@@ -44,7 +47,7 @@ func (ws *WebServer) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			token = strings.TrimPrefix(token, "Bearer ")
 		}
 
-		if token == "" || token != ws.cfg.AdminToken {
+		if token == "" || len(token) != len(ws.cfg.AdminToken) || subtle.ConstantTimeCompare([]byte(token), []byte(ws.cfg.AdminToken)) != 1 {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -59,10 +62,16 @@ func (ws *WebServer) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ws.userStore.mu.RLock()
-	var users []UserStatus
+	userSnapshot := make([]UserInfo, 0, len(ws.userStore.users))
 	for _, u := range ws.userStore.users {
+		userSnapshot = append(userSnapshot, *u)
+	}
+	ws.userStore.mu.RUnlock()
+
+	var users []UserStatus
+	for _, u := range userSnapshot {
 		status := UserStatus{
-			UserInfo: *u,
+			UserInfo: u,
 		}
 
 		sess := ws.sessionMgr.GetSession(u.UserID)
@@ -77,7 +86,6 @@ func (ws *WebServer) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 
 		users = append(users, status)
 	}
-	ws.userStore.mu.RUnlock()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
@@ -205,12 +213,10 @@ func (ws *WebServer) handleConfig(w http.ResponseWriter, r *http.Request) {
 		// But Wait: Config doesn't store its own path. We should pass configPath to SaveConfig.
 		// Let's assume it's always "config.json" to simplify, or maybe the admin runs it with default.
 		// Actually, I can just save it to "config.json"
-		if err := ws.cfg.SaveConfig("config.json"); err != nil {
+		if err := ws.cfg.SaveConfig(ws.configPath); err != nil {
 			http.Error(w, "Failed to save config", http.StatusInternalServerError)
 			return
 		}
-		
-		ws.cfg.SaveConfig("config.json") // We'll just hardcode config.json for the web dashboard right now
 
 		w.WriteHeader(http.StatusOK)
 		return

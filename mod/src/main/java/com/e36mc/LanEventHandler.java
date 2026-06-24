@@ -144,53 +144,11 @@ public class LanEventHandler {
         sendChatMessage("§e[e36mc] Đang kết nối lại... (Lần " + attempt + ")");
     }
 
-    private static boolean debugLogged = false;
-
-    /**
-     * Logs full runtime structure of ClickEvent and HoverEvent once, for debugging.
-     */
-    private static void logClassStructure() {
-        if (debugLogged) return;
-        debugLogged = true;
-
-        E36mcMod.LOGGER.info("[e36mc] === ClickEvent runtime debug ===");
-        E36mcMod.LOGGER.info("[e36mc] ClickEvent class: {} | interface={} | abstract={}",
-            ClickEvent.class.getName(),
-            ClickEvent.class.isInterface(),
-            java.lang.reflect.Modifier.isAbstract(ClickEvent.class.getModifiers()));
-        for (Constructor<?> c : ClickEvent.class.getDeclaredConstructors()) {
-            E36mcMod.LOGGER.info("[e36mc]   constructor: {}", c);
-        }
-        for (Class<?> inner : ClickEvent.class.getDeclaredClasses()) {
-            E36mcMod.LOGGER.info("[e36mc]   inner: {} implements ClickEvent={}", inner.getName(), ClickEvent.class.isAssignableFrom(inner));
-            for (Constructor<?> c : inner.getDeclaredConstructors()) {
-                E36mcMod.LOGGER.info("[e36mc]     constructor: {}", c);
-            }
-        }
-
-        E36mcMod.LOGGER.info("[e36mc] === HoverEvent runtime debug ===");
-        E36mcMod.LOGGER.info("[e36mc] HoverEvent class: {} | interface={} | abstract={}",
-            HoverEvent.class.getName(),
-            HoverEvent.class.isInterface(),
-            java.lang.reflect.Modifier.isAbstract(HoverEvent.class.getModifiers()));
-        for (Constructor<?> c : HoverEvent.class.getDeclaredConstructors()) {
-            E36mcMod.LOGGER.info("[e36mc]   constructor: {}", c);
-        }
-        for (Class<?> inner : HoverEvent.class.getDeclaredClasses()) {
-            E36mcMod.LOGGER.info("[e36mc]   inner: {} implements HoverEvent={}", inner.getName(), HoverEvent.class.isAssignableFrom(inner));
-            for (Constructor<?> c : inner.getDeclaredConstructors()) {
-                E36mcMod.LOGGER.info("[e36mc]     constructor: {}", c);
-            }
-        }
-        E36mcMod.LOGGER.info("[e36mc] === end debug ===");
-    }
-
     /**
      * Creates a ClickEvent compatible across MC versions.
      * Strategy: try direct constructor, then brute-force all inner classes.
      */
     private static ClickEvent createClickEvent(ClickEvent.Action action, String value) {
-        logClassStructure();
 
         // Strategy 1: Direct constructor (1.21.1 where ClickEvent is a record/class)
         try {
@@ -243,7 +201,6 @@ public class LanEventHandler {
      */
     @SuppressWarnings("unchecked")
     private static <T> HoverEvent createHoverEvent(HoverEvent.Action<T> action, T value) {
-        logClassStructure();
 
         // Strategy 1: Direct constructor (Action, T)
         try {

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -108,8 +109,27 @@ func (s *UserStore) SaveToFile(path string) error {
 	if err != nil {
 		return fmt.Errorf("marshal users: %w", err)
 	}
-	if err := os.WriteFile(path, data, 0600); err != nil {
-		return fmt.Errorf("write users file: %w", err)
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, ".users-*.tmp")
+	if err != nil {
+		return fmt.Errorf("create temp users file: %w", err)
+	}
+	tmpPath := tmp.Name()
+	defer func() {
+		tmp.Close()
+		os.Remove(tmpPath)
+	}()
+	if _, err := tmp.Write(data); err != nil {
+		return fmt.Errorf("write temp users file: %w", err)
+	}
+	if err := tmp.Chmod(0600); err != nil {
+		return fmt.Errorf("chmod temp users file: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close temp users file: %w", err)
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		return fmt.Errorf("rename temp users file: %w", err)
 	}
 	return nil
 }

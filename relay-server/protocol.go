@@ -45,6 +45,7 @@ type NewConnPayload struct {
 
 type ConnReadyPayload struct {
 	ConnID string `json:"conn_id"`
+	Token  string `json:"token"`
 }
 
 // --- Wire helpers: length-prefixed JSON ---

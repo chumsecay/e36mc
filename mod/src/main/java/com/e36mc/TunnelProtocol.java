@@ -90,9 +90,10 @@ public class TunnelProtocol {
         writeMessage(out, MSG_AUTH, payload);
     }
 
-    public static void sendConnReady(OutputStream out, String connId) throws IOException {
+    public static void sendConnReady(OutputStream out, String connId, String token) throws IOException {
         JsonObject payload = new JsonObject();
         payload.addProperty("conn_id", connId);
+        payload.addProperty("token", token);
         writeMessage(out, MSG_CONN_READY, payload);
     }
 

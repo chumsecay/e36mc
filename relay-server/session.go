@@ -16,6 +16,7 @@ type Session struct {
 	UserID    string
 	Subdomain string
 	Domain    string
+	Token     string
 
 	controlConn net.Conn
 	mu          sync.Mutex
@@ -33,11 +34,12 @@ type Session struct {
 	CurrentTxSpeed uint64 // bytes/sec
 }
 
-func NewSession(userID, subdomain, domain string, controlConn net.Conn) *Session {
+func NewSession(userID, subdomain, domain, token string, controlConn net.Conn) *Session {
 	return &Session{
 		UserID:       userID,
 		Subdomain:    subdomain,
 		Domain:       domain,
+		Token:        token,
 		ConnectedAt:  time.Now(),
 		controlConn:  controlConn,
 		pendingConns: make(map[string]chan net.Conn),
@@ -134,7 +136,7 @@ func (sm *SessionManager) statsLoop() {
 }
 
 // CreateSession creates a new session, closing any existing one for this user.
-func (sm *SessionManager) CreateSession(userID, subdomain, domain string, controlConn net.Conn) *Session {
+func (sm *SessionManager) CreateSession(userID, subdomain, domain, token string, controlConn net.Conn) *Session {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
@@ -144,7 +146,7 @@ func (sm *SessionManager) CreateSession(userID, subdomain, domain string, contro
 		old.Close()
 	}
 
-	sess := NewSession(userID, subdomain, domain, controlConn)
+	sess := NewSession(userID, subdomain, domain, token, controlConn)
 	sm.sessions[userID] = sess
 	log.Printf("[session] created session for user %s (%s)", userID, domain)
 	return sess

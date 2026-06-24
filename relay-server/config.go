@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -58,8 +59,27 @@ func (c *Config) SaveConfig(path string) error {
 	if err != nil {
 		return fmt.Errorf("marshal config: %w", err)
 	}
-	if err := os.WriteFile(path, data, 0644); err != nil {
-		return fmt.Errorf("write config: %w", err)
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, ".config-*.tmp")
+	if err != nil {
+		return fmt.Errorf("create temp config: %w", err)
+	}
+	tmpPath := tmp.Name()
+	defer func() {
+		tmp.Close()
+		os.Remove(tmpPath)
+	}()
+	if _, err := tmp.Write(data); err != nil {
+		return fmt.Errorf("write temp config: %w", err)
+	}
+	if err := tmp.Chmod(0644); err != nil {
+		return fmt.Errorf("chmod temp config: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close temp config: %w", err)
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		return fmt.Errorf("rename temp config: %w", err)
 	}
 	return nil
 }

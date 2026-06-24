@@ -35,7 +35,6 @@ public class TunnelClient {
         return t;
     });
 
-    private ScheduledExecutorService heartbeatExecutor;
     private String assignedDomain;
 
     // Reconnect settings
@@ -78,10 +77,6 @@ public class TunnelClient {
 
         E36mcMod.LOGGER.info("[e36mc] Stopping tunnel client (silent={})", silent);
 
-        // Shutdown heartbeat
-        if (heartbeatExecutor != null) {
-            heartbeatExecutor.shutdownNow();
-        }
 
         // Close control connection
         closeQuietly(controlSocket);
@@ -132,9 +127,6 @@ public class TunnelClient {
                     }
                     E36mcMod.LOGGER.info("[e36mc] Auth OK! Domain: {}", assignedDomain);
                     LanEventHandler.displayTunnelAddress(assignedDomain);
-
-                    // Start heartbeat
-                    startHeartbeat();
 
                     // Listen for commands (this blocks until disconnect)
                     listenForCommands();
@@ -221,7 +213,7 @@ public class TunnelClient {
 
             // 2. Send CONN_READY
             OutputStream dataOut = dataSocket.getOutputStream();
-            TunnelProtocol.sendConnReady(dataOut, connId);
+            TunnelProtocol.sendConnReady(dataOut, connId, token);
 
             E36mcMod.LOGGER.info("[e36mc] Data channel established for {}", connId);
 
@@ -250,7 +242,9 @@ public class TunnelClient {
             InputStream in2 = socket2.getInputStream();
             OutputStream out2 = socket2.getOutputStream();
 
-            CountDownLatch latch = new CountDownLatch(1);
+            // When one direction closes (EOF or error), we close both sockets
+            // to tear down the entire bridge promptly.
+            CountDownLatch firstDirectionClosed = new CountDownLatch(1);
 
             // socket1 → socket2
             Thread t1 = new Thread(() -> {
@@ -258,7 +252,7 @@ public class TunnelClient {
                     copyStream(in1, out2);
                 } catch (IOException ignored) {
                 } finally {
-                    latch.countDown();
+                    firstDirectionClosed.countDown();
                 }
             }, "e36mc-bridge-" + connId + "-relay→local");
             t1.setDaemon(true);
@@ -269,7 +263,7 @@ public class TunnelClient {
                     copyStream(in2, out1);
                 } catch (IOException ignored) {
                 } finally {
-                    latch.countDown();
+                    firstDirectionClosed.countDown();
                 }
             }, "e36mc-bridge-" + connId + "-local→relay");
             t2.setDaemon(true);
@@ -278,7 +272,7 @@ public class TunnelClient {
             t2.start();
 
             // Wait for one direction to finish
-            latch.await();
+            firstDirectionClosed.await();
 
             E36mcMod.LOGGER.debug("[e36mc] Bridge closed for conn {}", connId);
 
@@ -300,28 +294,6 @@ public class TunnelClient {
             out.write(buffer, 0, read);
             out.flush();
         }
-    }
-
-    /**
-     * Start periodic heartbeat on the control channel.
-     */
-    private void startHeartbeat() {
-        heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "e36mc-heartbeat");
-            t.setDaemon(true);
-            return t;
-        });
-
-        heartbeatExecutor.scheduleAtFixedRate(() -> {
-            if (!running.get()) return;
-            try {
-                // We respond to PING from server with PONG (handled in listenForCommands).
-                // We can also send our own PING to detect dead connections.
-                // For now, the server sends PINGs and we respond.
-            } catch (Exception e) {
-                E36mcMod.LOGGER.error("[e36mc] Heartbeat error: {}", e.getMessage());
-            }
-        }, 15, 15, TimeUnit.SECONDS);
     }
 
     /**

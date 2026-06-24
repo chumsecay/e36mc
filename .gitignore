@@ -19,6 +19,9 @@ relay-server/users.json
 relay-server/*.pem
 relay-server/*.key
 relay-server/*.crt
+*_config*.json
+config_*.json
+e36mc_config*.json
 
 # OS files
 .DS_Store

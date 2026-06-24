@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
 	"log"
 	"net"
@@ -85,7 +86,7 @@ func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *
 	log.Printf("[auth] user %s authenticated, domain: %s", user.UserID, fullDomain)
 
 	// Create session (this kicks any existing session for the user)
-	sess := sessionMgr.CreateSession(user.UserID, user.Subdomain, fullDomain, conn)
+	sess := sessionMgr.CreateSession(user.UserID, user.Subdomain, fullDomain, user.Token, conn)
 
 	// Send AUTH_OK
 	if err := WriteMessage(conn, MsgAuthOk, &AuthOkPayload{Domain: fullDomain}); err != nil {
@@ -96,12 +97,28 @@ func handleAuth(conn net.Conn, env *Envelope, userStore *UserStore, sessionMgr *
 	}
 
 	// Start heartbeat loop on control channel
-	go controlLoop(sess, sessionMgr)
+	go controlLoop(sess, sessionMgr, userStore, cfg)
 }
 
 // controlLoop manages the control channel: heartbeat and message reading.
-func controlLoop(sess *Session, sessionMgr *SessionManager) {
-	defer sessionMgr.RemoveSession(sess.UserID)
+func controlLoop(sess *Session, sessionMgr *SessionManager, userStore *UserStore, cfg *Config) {
+	defer func() {
+		sessionMgr.RemoveSession(sess.UserID)
+		// Cleanup guest user when session ends
+		if cfg.AllowPublicMode {
+			userStore.mu.Lock()
+			user, ok := userStore.users[sess.UserID]
+			if ok && user.IsGuest {
+				delete(userStore.users, sess.UserID)
+			}
+			userStore.mu.Unlock()
+			if ok && user.IsGuest {
+				if err := userStore.SaveToFile(cfg.UsersFile); err != nil {
+					log.Printf("[auth] failed to persist guest cleanup for %s: %v", sess.UserID, err)
+				}
+			}
+		}
+	}()
 
 	// Heartbeat ticker
 	ticker := time.NewTicker(heartbeatInterval)
@@ -171,6 +188,13 @@ func handleConnReady(conn net.Conn, env *Envelope, sessionMgr *SessionManager) {
 		_, exists := sess.pendingConns[ready.ConnID]
 		sess.mu.Unlock()
 		if exists {
+			// Verify token before allowing data channel
+			if len(sess.Token) != len(ready.Token) || subtle.ConstantTimeCompare([]byte(sess.Token), []byte(ready.Token)) != 1 {
+				log.Printf("[data] invalid token for conn_id %s", ready.ConnID)
+				conn.Close()
+				found = true
+				break
+			}
 			if err := sess.ResolvePendingConn(ready.ConnID, conn); err != nil {
 				log.Printf("[data] failed to resolve conn %s: %v", ready.ConnID, err)
 				conn.Close()
